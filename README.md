@@ -1,7 +1,7 @@
 # Obsidian Aider
 
 <p align="center">
-  <b>A quiet, native, and distraction-free AI companion crafted for Obsidian note creators, researchers, and thinkers.</b>
+  <b>A distraction-free, native AI companion for Obsidian — chat with your vault, explore ideas, and write with focus.</b>
 </p>
 
 <p align="center">
@@ -9,46 +9,75 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.9.0-blue.svg" alt="version">
+  <img src="https://img.shields.io/badge/version-0.10.0-blue.svg" alt="version">
   <img src="https://img.shields.io/badge/platform-Obsidian-purple.svg" alt="platform">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="license">
-  <img src="https://img.shields.io/badge/Node.js-Not%20Required-brightgreen.svg" alt="zero-config">
+  <img src="https://img.shields.io/badge/cross--platform-Desktop%20%26%20Mobile-brightgreen.svg" alt="cross-platform">
 </p>
 
 ---
 
 ## 💡 What is Obsidian Aider & Who is it for?
 
-**Obsidian Aider** is a lightweight, distraction-free AI companion seamlessly integrated into Obsidian. It focuses on note reading, research synthesis, brainstorming, and writing assistance—empowering you to converse naturally with your vault and modern LLMs without ever leaving your editor.
+**Obsidian Aider** is a distraction-free, native AI companion seamlessly integrated into your Obsidian workspace. Focused on document reading, literature research, idea brainstorming, and creative writing, it empowers you to converse effortlessly with your personal knowledge vault and modern LLMs without ever leaving your notes.
 
-### Key Problems Solved
-- **No Developer Clutter**: Strips away intrusive code-merge diffs, confusing technical controls, and heavy dependencies, returning your workspace to pure writing and thought.
-- **True Vault Integration**: Goes far beyond a standalone chat window by seamlessly referencing your vault notes, perceiving active documents, and connecting ideas across your knowledge base.
-- **Free-Tier Friendly**: Eliminates aggressive rate-limiting headaches by optimizing token context and automatically managing retries for free model tiers.
+### Needs Met & Pain Points Solved
+- **Deeply Integrated with Your Notes**: Say goodbye to constantly switching between external web chats and Obsidian. Aider resides in your sidebar, aware of your active note, and lets you pull in referenced vault notes via `@` at any time for seamless reading and writing companion workflows.
+- **Clean & Focused Interface**: Strips away complex setup hurdles and distracting visual clutter, presenting an intuitive bubble chat with foldable reasoning blocks that keeps your focus entirely on reading, thinking, and writing.
+- **Free-Tier Friendly & Resilient Rate Limiting**: Built with smart context optimization and automatic rate-limit backoff tailored for lightweight and free-tier models, preventing disruptive 429 quota errors and extending your token mileage.
+- **Zero Configuration & Cross-Platform**: No additional runtime or programming environment required. Fully compatible out of the box across desktop computers and iOS/Android mobile devices.
 
 ### Target Audience
-- 📚 **Researchers & Scholars**: Synthesize dense literature, search arXiv papers, and cross-reference multiple study notes.
-- ✍️ **Writers & Content Creators**: Overcome writer's block, draft outlines, refine phrasing, and expand arguments effortlessly.
-- 🎒 **Students & Lifelong Learners**: Turn your notes into an interactive private tutor, query definitions on the web, and build structured study summaries.
-- 💡 **PKM Enthusiasts**: Anyone seeking a quiet, respectful AI assistant that feels like an organic extension of Obsidian.
+- 📚 **Researchers & Scholars**: Synthesize extensive papers, search arXiv literature, and cross-reference viewpoints across notes.
+- ✍️ **Writers & Content Creators**: Brainstorm article outlines in the sidebar, polish phrasing, and overcome writer's block.
+- 🎒 **Students & Lifelong Learners**: Transform your vault into an interactive 24/7 personal tutor to clarify concepts and extract key review points.
+- 💡 **PKM Enthusiasts**: Anyone seeking a calm, unobtrusive, and native-feeling AI assistant for Obsidian.
 
 ---
 
-## ⚖️ Key Differentiators & Core Features
+## ⚖️ Core Features at a Glance
 
-### Key Differentiators from Other AI Plugins
-1. **Zero Technical Barriers (No Node.js)**: No runtime setup required. Bundled at only **~2.1 MB** (over 75% lighter than typical alternatives), with instant startup and zero lag on your vault.
-2. **Content-First Simplicity**: Eliminates programmer-oriented Diff/Apply buttons, keeping the interface dedicated entirely to reading and writing.
-3. **Wallet & Free-Tier Friendly**: Ships with **🌱 Eco Mode** enabled by default, reducing token overhead by up to 75% alongside intelligent 429 rate-limit backoff.
-4. **Native Aesthetic Harmony**: SMS-style dialogue bubbles automatically adapt to Obsidian light, dark, and community themes (e.g. Minimal), featuring foldable callout blocks for reasoning models.
+### 1. Natural, Distraction-Free Conversation
+- **Harmonious Native Aesthetic**: Modern bubble interface adapts seamlessly to Obsidian light, dark, and community themes (e.g. Minimal);
+- **Foldable Reasoning Stream**: Thought processes from reasoning models (like DeepSeek-R1) are neatly tucked into expandable callout blocks to keep chats readable;
+- **In-Place Query Editing**: Revisit and edit past questions directly in the timeline to explore new branches of inquiry.
 
-### Core Features at a Glance
-- **Vault Knowledge Co-pilot (`@` Mentions)**: Type `@` to quickly find and reference notes or folders; automatically detects your active note to summarize key points or answer questions.
-- **Native Zero-Config Tools & MCP**:
-  - Built-in **Web Search** (fast, direct, no extra API key required);
-  - Built-in **Webpage Reader** (paste any URL to extract clean Markdown);
-  - Built-in **arXiv Academic Search & Weather**, plus full support for standard **MCP** (Model Context Protocol) extensions.
-- **Multi-Provider Ecosystem**: Built-in support for **OpenAI, DeepSeek, OpenRouter, and SiliconFlow**, defaulted to SiliconFlow's `deepseek-ai/DeepSeek-V4-Flash` and English interface (with easy Chinese toggle).
+### 2. Vault Knowledge Interaction (`@` Mentions)
+- **Contextual Note Referencing**: Type `@` in the chat input to search and attach single notes or whole folders;
+- **Active Document Awareness**: Instantly perceives your currently opened document to provide summaries, extract highlights, or answer targeted questions.
+
+### 3. Token Efficiency & Intelligent Anti-Rate-Limit Protection
+- **🌱 Eco Mode**: Intelligently compacts conversation context, reducing token overhead by up to 75%;
+- **Smart Rate-Limit Backoff & Silent Retries**: Automatically calculates wait intervals upon encountering provider 429 limits, eliminating manual refreshes;
+- **Loop Guard**: Prevents multi-step reasoning tools from falling into repetitive loops, ensuring concise and well-structured conclusions.
+
+### 4. Ultra-Lightweight & Universal Compatibility
+- **Instantaneous Startup**: Bundle size is only **~0.43 MB**, placing zero performance overhead or lag on your vault indexing;
+- **Full Cross-Platform Support**: Complies strictly with official Obsidian sandbox standards, running smoothly on Windows, macOS, Linux, iOS, and Android.
+
+### 5. Out-of-the-Box Zero-Config Native Tools
+- **Bing Web Search**: Direct, fast web search without extra proxies or API keys required;
+- **Webpage Content Fetcher**: Paste any URL to extract clean, readable Markdown in seconds;
+- **Global Real-Time Weather**: Query accurate current weather and 3-day forecasts for any city;
+- **arXiv Academic Search**: Search scientific papers and abstracts from the world's leading open literature repository;
+- **Accurate System Time**: Millisecond-accurate local and UTC time awareness to prevent temporal hallucinations.
+
+---
+
+## 🌐 Comprehensive Multi-Provider Ecosystem
+
+Obsidian Aider supports a rich variety of AI model providers. **4 core providers are enabled by default** out of the box (simply input your API key to start chatting):
+- **OpenAI**
+- **DeepSeek**
+- **OpenRouter**
+- **SiliconFlow**
+
+In addition to the 4 default-enabled providers, you can easily add and configure any other supported provider directly from the settings:
+- **Global Commercial Clouds**: Anthropic (Claude), Google Gemini, xAI (Grok), Mistral AI, Perplexity, Groq, Azure OpenAI
+- **Domestic AI Platforms**: ModelScope
+- **Local Offline Models**: Ollama, LM Studio (runs 100% locally on your machine with complete data privacy)
+- **Custom & Reverse Proxies**: OpenAI Compatible (supports any custom, third-party proxy, or OneAPI / NewAPI endpoint conforming to the OpenAI standard)
+- **Web Plan Subscriptions**: Claude Plan, OpenAI Plan, and Gemini Plan direct session authorizations
 
 ---
 

@@ -1,10 +1,34 @@
-import type { Client } from '@modelcontextprotocol/sdk/client/index.js'
-import type { CallToolResult, Tool } from '@modelcontextprotocol/sdk/types'
 import { z } from 'zod'
 
-export type McpTool = Tool
-export type McpToolCallResult = CallToolResult
-export type McpClient = Client
+export type McpTool = {
+  name: string
+  description?: string
+  inputSchema: {
+    type: 'object'
+    properties?: Record<string, unknown>
+    required?: string[]
+    [key: string]: unknown
+  }
+}
+
+export type McpToolCallResult = {
+  content: Array<{
+    type: string
+    text?: string
+    [key: string]: unknown
+  }>
+  isError?: boolean
+}
+
+export interface McpClient {
+  close?: () => Promise<void>
+  listTools?: () => Promise<{ tools: McpTool[] }>
+  callTool?: (
+    params: { name: string; arguments?: Record<string, unknown> },
+    schema?: unknown,
+    options?: { signal?: AbortSignal },
+  ) => Promise<McpToolCallResult>
+}
 
 export const mcpServerParametersSchema = z.object({
   command: z.string(),

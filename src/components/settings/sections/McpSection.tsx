@@ -1,21 +1,8 @@
-import { Edit, Trash } from 'lucide-react'
 import { App } from 'obsidian'
-import { useCallback, useEffect, useState } from 'react'
 
 import { useSettings } from '../../../contexts/settings-context'
-import { McpManager } from '../../../core/mcp/mcpManager'
 import SmartComposerPlugin from '../../../main'
-import {
-  McpServerState,
-  McpServerStatus,
-} from '../../../types/mcp.types'
-import { ObsidianButton } from '../../common/ObsidianButton'
 import { ObsidianToggle } from '../../common/ObsidianToggle'
-import { ConfirmModal } from '../../modals/ConfirmModal'
-import {
-  AddMcpServerModal,
-  EditMcpServerModal,
-} from '../modals/McpServerFormModal'
 
 type McpSectionProps = {
   app: App
@@ -73,29 +60,6 @@ export function McpSection({ app, plugin }: McpSectionProps) {
   const language = settings.language ?? 'en'
   const isZh = language === 'zh'
 
-  const [mcpManager, setMcpManager] = useState<McpManager | null>(null)
-  const [mcpServers, setMcpServers] = useState<McpServerState[]>([])
-
-  useEffect(() => {
-    const initMCPManager = async () => {
-      const manager = await plugin.getMcpManager()
-      setMcpManager(manager)
-      setMcpServers(manager.getServers())
-    }
-    initMCPManager()
-  }, [plugin])
-
-  useEffect(() => {
-    if (mcpManager) {
-      const unsubscribe = mcpManager.subscribeServersChange((servers) => {
-        setMcpServers(servers)
-      })
-      return () => {
-        unsubscribe()
-      }
-    }
-  }, [mcpManager])
-
   const handleToggleBuiltinTool = async (key: string, enabled: boolean) => {
     const current = settings.mcp?.builtinTools ?? {}
     await setSettings({
@@ -121,12 +85,12 @@ export function McpSection({ app, plugin }: McpSectionProps) {
       {/* 1. 内置原生工具引擎 */}
       <div style={{ marginBottom: '28px' }}>
         <div className="aide-settings-sub-header">
-          {isZh ? '内置原生工具 (免环境支持)' : 'Built-in Native Tools (Zero Dependency)'}
+          {isZh ? '内置原生工具 (零环境依赖)' : 'Built-in Native Tools (Zero Dependency)'}
         </div>
         <div className="aide-settings-desc">
           {isZh
-            ? '由插件底层原生驱动，无需安装 Node.js 环境或配置外部进程，在桌面端和移动端均可秒开使用。'
-            : 'Powered natively by the plugin engine. No Node.js required, works on all platforms.'}
+            ? '由插件底层原生驱动，无需安装 Node.js 环境或配置外部进程，在桌面端和移动端（iOS / Android）均可秒开使用。'
+            : 'Powered natively by the plugin engine. No Node.js required, works instantly on desktop and mobile.'}
         </div>
 
         <div className="aide-settings-table-container">
@@ -179,194 +143,27 @@ export function McpSection({ app, plugin }: McpSectionProps) {
         </div>
       </div>
 
-      {/* 2. 外部 MCP 扩展服务 */}
-      <div>
-        <div className="aide-settings-sub-header-container">
-          <div className="aide-settings-sub-header">
-            {isZh ? '外部扩展服务' : 'External MCP Servers'}
-          </div>
-          {!mcpManager?.disabled && (
-            <ObsidianButton
-              text={isZh ? '添加外部服务' : 'Add External Server'}
-              onClick={() => new AddMcpServerModal(app, plugin).open()}
-            />
-          )}
+      {/* 2. 纯净安全运行模式说明 */}
+      <div
+        style={{
+          padding: '14px 18px',
+          borderRadius: '8px',
+          backgroundColor: 'var(--background-secondary)',
+          border: '1px solid var(--background-modifier-border)',
+          fontSize: '13px',
+          color: 'var(--text-muted)',
+          lineHeight: '1.6',
+        }}
+      >
+        <div style={{ fontWeight: 600, color: 'var(--text-normal)', marginBottom: '4px' }}>
+          🛡️ {isZh ? '纯净沙箱安全模式' : 'Pure Sandbox Security Mode'}
         </div>
-        <div className="aide-settings-desc">
+        <div>
           {isZh
-            ? '支持接入遵循 Model Context Protocol 标准的外部命令行子进程服务（需要系统安装 Node.js 环境）。'
-            : 'Connect custom external CLI sub-process servers adhering to Model Context Protocol (Node.js required).'}
-          {!mcpManager?.disabled && (
-            <span
-              style={{
-                marginLeft: '8px',
-                color: 'var(--text-accent)',
-                cursor: 'pointer',
-                textDecoration: 'underline',
-              }}
-              onClick={() => window.open('https://nodejs.org/', '_blank')}
-            >
-              {isZh ? '前往 Node.js 官网下载 →' : 'Visit Node.js Website →'}
-            </span>
-          )}
-        </div>
-
-        {mcpManager?.disabled ? (
-          <div style={{ color: 'var(--text-muted)', fontSize: '13px', padding: '12px 0' }}>
-            {isZh
-              ? '当前处于移动端设备，外部子进程扩展服务仅在桌面端可用。内置原生工具已正常工作。'
-              : 'External CLI subprocess servers are only available on desktop. Built-in tools are working properly.'}
-          </div>
-        ) : (
-          <div className="aide-mcp-servers-container" style={{ marginTop: '12px' }}>
-            <div className="aide-mcp-servers-header">
-              <div>{isZh ? '服务名称' : 'Server Name'}</div>
-              <div>{isZh ? '状态' : 'Status'}</div>
-              <div>{isZh ? '启用' : 'Enabled'}</div>
-              <div>{isZh ? '操作' : 'Actions'}</div>
-            </div>
-            {mcpServers.length > 0 ? (
-              mcpServers.map((server) => (
-                <McpServerComponent
-                  key={server.name}
-                  server={server}
-                  app={app}
-                  plugin={plugin}
-                  isZh={isZh}
-                />
-              ))
-            ) : (
-              <div className="aide-mcp-servers-empty">
-                {isZh ? '暂无外部服务配置' : 'No external servers configured'}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function McpServerComponent({
-  server,
-  app,
-  plugin,
-  isZh,
-}: {
-  server: McpServerState
-  app: App
-  plugin: SmartComposerPlugin
-  isZh: boolean
-}) {
-  const { settings, setSettings } = useSettings()
-
-  const handleEdit = useCallback(() => {
-    new EditMcpServerModal(app, plugin, server.name).open()
-  }, [server.name, app, plugin])
-
-  const handleDelete = useCallback(() => {
-    const title = isZh ? '删除外部服务' : 'Delete External Server'
-    const message = isZh
-      ? `确定要删除外部服务 "${server.name}" 吗？`
-      : `Are you sure you want to delete external server "${server.name}"?`
-    new ConfirmModal(app, {
-      title,
-      message,
-      ctaText: isZh ? '删除' : 'Delete',
-      onConfirm: async () => {
-        await setSettings({
-          ...settings,
-          mcp: {
-            ...settings.mcp,
-            servers: settings.mcp.servers.filter((s) => s.id !== server.name),
-          },
-        })
-      },
-    }).open()
-  }, [server.name, settings, setSettings, app, isZh])
-
-  const handleToggleEnabled = useCallback(
-    async (enabled: boolean) => {
-      await setSettings({
-        ...settings,
-        mcp: {
-          ...settings.mcp,
-          servers: settings.mcp.servers.map((s) =>
-            s.id === server.name ? { ...s, enabled } : s,
-          ),
-        },
-      })
-    },
-    [settings, setSettings, server.name],
-  )
-
-  return (
-    <div className="aide-mcp-server">
-      <div className="aide-mcp-server-row">
-        <div className="aide-mcp-server-name">{server.name}</div>
-        <div className="aide-mcp-server-status">
-          <McpServerStatusBadge status={server.status} isZh={isZh} />
-        </div>
-        <div className="aide-mcp-server-toggle">
-          <ObsidianToggle
-            value={server.config.enabled}
-            onChange={handleToggleEnabled}
-          />
-        </div>
-        <div className="aide-mcp-server-actions">
-          <button
-            onClick={handleEdit}
-            className="clickable-icon"
-            aria-label={isZh ? '编辑' : 'Edit'}
-            title={isZh ? '编辑' : 'Edit'}
-          >
-            <Edit size={16} />
-          </button>
-          <button
-            onClick={handleDelete}
-            className="clickable-icon"
-            aria-label={isZh ? '删除' : 'Delete'}
-            title={isZh ? '删除' : 'Delete'}
-          >
-            <Trash size={16} />
-          </button>
+            ? '本插件不启动任何操作系统命令行子进程，也不直接访问仓库外的系统文件。所有内置能力均通过 Obsidian 官方沙箱网络接口运行，完全符合官方插件安全发布规范，全面兼容桌面端与移动端设备。'
+            : 'This plugin runs strictly within Obsidian\'s official sandbox without spawning external subprocesses or accessing outside files, fully compliant with Obsidian community guidelines on both desktop and mobile.'}
         </div>
       </div>
     </div>
   )
-}
-
-function McpServerStatusBadge({
-  status,
-  isZh,
-}: {
-  status: McpServerStatus
-  isZh: boolean
-}) {
-  switch (status) {
-    case McpServerStatus.Connected:
-      return (
-        <span style={{ color: 'var(--text-success)' }}>
-          {isZh ? '已连接' : 'Connected'}
-        </span>
-      )
-    case McpServerStatus.Connecting:
-      return (
-        <span style={{ color: 'var(--text-accent)' }}>
-          {isZh ? '连接中...' : 'Connecting...'}
-        </span>
-      )
-    case McpServerStatus.Disconnected:
-      return (
-        <span style={{ color: 'var(--text-muted)' }}>
-          {isZh ? '未连接' : 'Disconnected'}
-        </span>
-      )
-    case McpServerStatus.Error:
-      return (
-        <span style={{ color: 'var(--text-error)' }}>
-          {isZh ? '连接异常' : 'Error'}
-        </span>
-      )
-  }
 }

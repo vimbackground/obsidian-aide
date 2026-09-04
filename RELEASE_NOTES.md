@@ -1,3 +1,21 @@
+# Release Notes: v0.10.0 - Obsidian Aider Official Release / 正式发布
+
+## 🌐 English
+- **Full Cross-Platform & Mobile Readiness**: Completely decoupled from Node.js subprocesses and direct filesystem access (`child_process` and `fs` reduced to 0). Runs purely within Obsidian's official sandbox, fully compliant with the latest Obsidian Community Plugin security review standards, and seamlessly supported across both Desktop and iOS/Android mobile devices.
+- **Extreme Lightweight Optimization**: Bundle size further decreased from ~2.1 MB to **0.43 MB** (over 70% reduction), ensuring instantaneous startup and zero lag on your vault.
+- **Native Zero-Config Built-in Tools**: 5 native tools (Bing Web Search, Webpage Content Fetch, Global Weather Forecast, arXiv Academic Search, Accurate System Time) running purely on Obsidian's cross-platform network API without extra configuration or API keys.
+- **Comprehensive Multi-Provider Ecosystem**: 4 core providers (OpenAI, DeepSeek, OpenRouter, SiliconFlow) enabled by default for out-of-the-box ease, with full support for adding Anthropic (Claude), Google Gemini, xAI (Grok), Mistral AI, Perplexity, Groq, ModelScope, Azure OpenAI, local offline models (Ollama, LM Studio), and any OpenAI-compatible custom endpoints.
+- **Version Bump**: Updated to version `0.10.0`.
+
+## 🇨🇳 中文说明
+- **全平台合规与移动端无缝支持**：彻底移除 Node.js 子进程与直接文件系统访问依赖（`child_process` 与 `fs` 引用归零），完全基于 Obsidian 官方沙箱环境与跨平台网络接口运行，完美通过官方插件中心最新安全审核，全方位支持桌面端与 iOS / Android 移动设备。
+- **极致轻量化精简**：打包体积由 ~2.1 MB 大幅缩减至 **0.43 MB**（瘦身超 70%），秒开加载，不占用多余内存，不拖慢笔记库检索。
+- **原生内置工具增强**：5 大开箱即用原生工具（国内必应搜索、网页抓取转 Markdown、全球实时天气预报、arXiv 学术文献检索、当前系统精准时间）原生极速响应，免 API Key、免额外环境配置。
+- **全方位多模型服务商矩阵**：默认预置启用 4 家核心服务商（OpenAI、DeepSeek、OpenRouter、SiliconFlow），并全面支持一键添加配置 Anthropic (Claude)、Google Gemini、xAI (Grok)、Mistral、Perplexity、Groq、魔搭社区 (ModelScope)、Azure OpenAI、本地离线大模型 (Ollama、LM Studio) 以及任意兼容 OpenAI 规范的自建与中转服务。
+- **版本发布**：版本号升级为 `0.10.0`。
+
+---
+
 # Release Notes: v0.9.0 - Obsidian Aider Official Release / 正式发布
 
 ## 🌐 English
