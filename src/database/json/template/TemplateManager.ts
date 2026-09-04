@@ -21,7 +21,18 @@ export class TemplateManager extends AbstractJsonRepository<
 
   protected generateFileName(template: Template): string {
     // Format: v{schemaVersion}_name_id.json (with name encoded)
-    const encodedName = encodeURIComponent(template.name)
+    const clean = (template.name || 'template')
+      .replace(/[\\/:*?"<>|\r\n\t]/g, ' ')
+      .trim() || 'template'
+    let truncated = clean
+    while (
+      truncated.length > 0 &&
+      encodeURIComponent(truncated).replace(/\*/g, '%2A').length > 150
+    ) {
+      truncated = truncated.slice(0, -1)
+    }
+    if (!truncated) truncated = 'template'
+    const encodedName = encodeURIComponent(truncated).replace(/\*/g, '%2A')
     return `v${TEMPLATE_SCHEMA_VERSION}_${encodedName}_${template.id}.json`
   }
 
@@ -33,7 +44,12 @@ export class TemplateManager extends AbstractJsonRepository<
 
     const encodedName = match[1]
     const id = match[2]
-    const name = decodeURIComponent(encodedName)
+    let name = 'Template'
+    try {
+      name = decodeURIComponent(encodedName)
+    } catch {
+      name = encodedName
+    }
 
     return { id, name, schemaVersion: TEMPLATE_SCHEMA_VERSION }
   }

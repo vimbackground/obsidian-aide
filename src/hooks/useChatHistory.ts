@@ -100,7 +100,7 @@ export function useChatHistory(): UseChatHistory {
           if (firstUserMessage?.content) {
             const plain = editorStateToPlainText(firstUserMessage.content).trim()
             if (plain.length > 0) {
-              generatedTitle = plain.substring(0, 30).replace(/[\r\n\t]+/g, ' ')
+              generatedTitle = plain.substring(0, 20).replace(/[\r\n\t]+/g, ' ')
             }
           } else if (targetArticlePath) {
             const baseName =
@@ -109,39 +109,43 @@ export function useChatHistory(): UseChatHistory {
             generatedTitle = `关于《${baseName}》`
           }
 
-          const existingConversation = await chatManager.findById(id)
+          try {
+            const existingConversation = await chatManager.findById(id)
 
-          if (existingConversation) {
-            const shouldUpdateTitle =
-              (!existingConversation.title ||
-                existingConversation.title === 'New chat' ||
-                existingConversation.title === '新对话') &&
-              generatedTitle !== '新对话'
+            if (existingConversation) {
+              const shouldUpdateTitle =
+                (!existingConversation.title ||
+                  existingConversation.title === 'New chat' ||
+                  existingConversation.title === '新对话') &&
+                generatedTitle !== '新对话'
 
-            if (
-              isEqual(existingConversation.messages, serializedMessages) &&
-              !shouldUpdateTitle
-            ) {
-              return
+              if (
+                isEqual(existingConversation.messages, serializedMessages) &&
+                !shouldUpdateTitle
+              ) {
+                return
+              }
+
+              await chatManager.updateChat(existingConversation.id, {
+                messages: serializedMessages,
+                title: shouldUpdateTitle
+                  ? generatedTitle
+                  : existingConversation.title,
+                articlePath: targetArticlePath || existingConversation.articlePath,
+              })
+            } else {
+              await chatManager.createChat({
+                id,
+                title: generatedTitle,
+                messages: serializedMessages,
+                articlePath: targetArticlePath,
+              })
             }
 
-            await chatManager.updateChat(existingConversation.id, {
-              messages: serializedMessages,
-              title: shouldUpdateTitle
-                ? generatedTitle
-                : existingConversation.title,
-              articlePath: targetArticlePath || existingConversation.articlePath,
-            })
-          } else {
-            await chatManager.createChat({
-              id,
-              title: generatedTitle,
-              messages: serializedMessages,
-              articlePath: targetArticlePath,
-            })
+            await fetchChatList()
+          } catch (error) {
+            console.error('Failed to create or update conversation:', error)
           }
-
-          await fetchChatList()
         },
         300,
         {

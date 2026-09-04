@@ -440,7 +440,6 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
           }
         }
       } catch (error) {
-        new Notice('Failed to save chat history')
         console.error('Failed to save chat history', error)
       }
     }

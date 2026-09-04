@@ -5,7 +5,7 @@ import { LLMProvider, LLMProviderType } from './types/provider.types'
 export const CHAT_VIEW_TYPE = 'aide-chat-view'
 export const APPLY_VIEW_TYPE = 'aide-apply-view'
 
-export const PGLITE_DB_PATH = '.aide/vector_db.tar.gz'
+export const PGLITE_DB_PATH = '.aider/vector_db.tar.gz'
 
 export const CODEX_CLIENT_ID = 'app_EMoamEEZ73f0CkXaXp7hrann'
 export const CODEX_ISSUER = 'https://auth.openai.com'

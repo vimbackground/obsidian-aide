@@ -11,9 +11,15 @@ export abstract class AbstractJsonRepository<T, M> {
     this.ensureDirectory()
   }
 
-  private async ensureDirectory(): Promise<void> {
-    if (!(await this.app.vault.adapter.exists(this.dataDir))) {
-      await this.app.vault.adapter.mkdir(this.dataDir)
+  protected async ensureDirectory(): Promise<void> {
+    const parts = this.dataDir.split('/')
+    let currentPath = ''
+    for (const part of parts) {
+      if (!part) continue
+      currentPath = currentPath ? `${currentPath}/${part}` : part
+      if (!(await this.app.vault.adapter.exists(currentPath))) {
+        await this.app.vault.adapter.mkdir(currentPath)
+      }
     }
   }
 
@@ -24,6 +30,7 @@ export abstract class AbstractJsonRepository<T, M> {
   protected abstract parseFileName(fileName: string): M | null
 
   public async create(row: T): Promise<void> {
+    await this.ensureDirectory()
     const fileName = this.generateFileName(row)
     const filePath = normalizePath(path.join(this.dataDir, fileName))
     const content = JSON.stringify(row, null, 2)
@@ -36,6 +43,7 @@ export abstract class AbstractJsonRepository<T, M> {
   }
 
   public async update(oldRow: T, newRow: T): Promise<void> {
+    await this.ensureDirectory()
     const oldFileName = this.generateFileName(oldRow)
     const newFileName = this.generateFileName(newRow)
     const content = JSON.stringify(newRow, null, 2)
@@ -54,9 +62,16 @@ export abstract class AbstractJsonRepository<T, M> {
 
   // List metadata for all records by parsing file names.
   public async listMetadata(): Promise<(M & { fileName: string })[]> {
+    await this.ensureDirectory()
+    if (!(await this.app.vault.adapter.exists(this.dataDir))) {
+      return []
+    }
     const files = await this.app.vault.adapter.list(this.dataDir)
-    return files.files
-      .map((filePath) => path.basename(filePath))
+    return (files.files || [])
+      .map((filePath) => {
+        const normalized = normalizePath(filePath)
+        return normalized.split('/').pop() || path.basename(normalized)
+      })
       .filter((fileName) => fileName.endsWith('.json'))
       .map((fileName) => {
         const metadata = this.parseFileName(fileName)

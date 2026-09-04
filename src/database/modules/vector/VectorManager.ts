@@ -18,7 +18,7 @@ import {
 import { InsertEmbedding, SelectEmbedding, VectorMetaData } from '../../../types/vector.types'
 import { chunkArray } from '../../../utils/common/chunk-array'
 
-const VECTOR_STORE_PATH = '.aide/vectors.json'
+const VECTOR_STORE_PATH = '.aider/vectors.json'
 
 function cosineSimilarity(vecA: number[], vecB: number[]): number {
   let dotProduct = 0
@@ -287,7 +287,7 @@ export class VectorManager {
     let filesToIndex = this.app.vault.getMarkdownFiles()
 
     // 1. 系统核心及非内容目录强制兜底排除
-    const SYSTEM_EXCLUDE_PATHS = ['.obsidian', '.aide', '.trash', '.git', '.smart-env']
+    const SYSTEM_EXCLUDE_PATHS = ['.obsidian', '.aider', '.aide', '.trash', '.git', '.smart-env']
     filesToIndex = filesToIndex.filter((file) => {
       const p = file.path
       return !SYSTEM_EXCLUDE_PATHS.some(
@@ -364,7 +364,7 @@ export class VectorManager {
         }
       }
     } catch (e) {
-      console.warn('[Aide] Failed to read vector store file size:', e)
+      console.warn('[Aider] Failed to read vector store file size:', e)
     }
 
     const totalCount = this.vectors.length

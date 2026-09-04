@@ -125,7 +125,17 @@ export default function UserMessageItem({
               <Edit2 size={12} />
             </button>
           )}
-          <div className="aide-user-message-bubble">
+          <div
+            className="aide-user-message-bubble"
+            onDoubleClick={onEditAndResubmit ? handleStartEdit : undefined}
+            title={
+              onEditAndResubmit
+                ? language === 'zh'
+                  ? '双击可直接编辑提示词'
+                  : 'Double-click to edit prompt'
+                : undefined
+            }
+          >
             {textContent || (language === 'zh' ? '(无文本内容)' : '(No content)')}
           </div>
         </div>

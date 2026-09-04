@@ -54,7 +54,7 @@ const ragOptionsSchema = z.object({
   minSimilarity: z.number().catch(0.0),
   limit: z.number().catch(10),
   filterMode: z.enum(['blacklist', 'whitelist']).catch('blacklist'),
-  excludePatterns: z.array(z.string()).catch(['.obsidian', '.aide', '.trash', '.git']),
+  excludePatterns: z.array(z.string()).catch(['.obsidian', '.aider', '.aide', '.trash', '.git']),
   includePatterns: z.array(z.string()).catch([]),
   backgroundIndexing: z.boolean().catch(false),
   rerank: rerankOptionsSchema.catch({
@@ -100,7 +100,7 @@ export const smartComposerSettingsSchema = z.object({
     minSimilarity: 0.0,
     limit: 10,
     filterMode: 'blacklist',
-    excludePatterns: ['.obsidian', '.aide', '.trash', '.git'],
+    excludePatterns: ['.obsidian', '.aider', '.aide', '.trash', '.git'],
     includePatterns: [],
     backgroundIndexing: false,
     rerank: {

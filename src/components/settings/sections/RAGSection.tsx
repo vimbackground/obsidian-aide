@@ -28,7 +28,7 @@ export function RAGSection({ app, plugin }: RAGSectionProps) {
   const [selectedFolderToAdd, setSelectedFolderToAdd] = useState('')
 
   // 获取 Vault 中现存的所有文件夹列表（排除系统隐藏文件夹）
-  const systemFolders = ['.obsidian', '.aide', '.trash', '.git', '.smart-env']
+  const systemFolders = ['.obsidian', '.aider', '.aide', '.trash', '.git', '.smart-env']
   const allVaultFolders = app.vault
     .getAllLoadedFiles()
     .filter((f): f is TFolder => f instanceof TFolder && f.path !== '/')
@@ -165,7 +165,7 @@ export function RAGSection({ app, plugin }: RAGSectionProps) {
         <>
           <ObsidianSetting
             name="排除目录设置 (黑名单)"
-            desc="指定不参与向量扫描的目录或文件。系统核心目录（.obsidian, .aide, .trash, .git 等）已由底层默认强制排除。"
+            desc="指定不参与向量扫描的目录或文件。系统核心目录（.obsidian, .aider, .trash, .git 等）已由底层默认强制排除。"
           >
             <ObsidianButton
               text="测试匹配排除文件"

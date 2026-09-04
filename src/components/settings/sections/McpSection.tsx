@@ -142,28 +142,6 @@ export function McpSection({ app, plugin }: McpSectionProps) {
           </table>
         </div>
       </div>
-
-      {/* 2. 纯净安全运行模式说明 */}
-      <div
-        style={{
-          padding: '14px 18px',
-          borderRadius: '8px',
-          backgroundColor: 'var(--background-secondary)',
-          border: '1px solid var(--background-modifier-border)',
-          fontSize: '13px',
-          color: 'var(--text-muted)',
-          lineHeight: '1.6',
-        }}
-      >
-        <div style={{ fontWeight: 600, color: 'var(--text-normal)', marginBottom: '4px' }}>
-          🛡️ {isZh ? '纯净沙箱安全模式' : 'Pure Sandbox Security Mode'}
-        </div>
-        <div>
-          {isZh
-            ? '本插件不启动任何操作系统命令行子进程，也不直接访问仓库外的系统文件。所有内置能力均通过 Obsidian 官方沙箱网络接口运行，完全符合官方插件安全发布规范，全面兼容桌面端与移动端设备。'
-            : 'This plugin runs strictly within Obsidian\'s official sandbox without spawning external subprocesses or accessing outside files, fully compliant with Obsidian community guidelines on both desktop and mobile.'}
-        </div>
-      </div>
     </div>
   )
 }

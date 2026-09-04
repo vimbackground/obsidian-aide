@@ -37,7 +37,7 @@ describe('parseSmartComposerSettings', () => {
         minSimilarity: 0.0,
         limit: 10,
         filterMode: 'blacklist',
-        excludePatterns: ['.obsidian', '.aide', '.trash', '.git'],
+        excludePatterns: ['.obsidian', '.aider', '.aide', '.trash', '.git'],
         includePatterns: [],
         backgroundIndexing: false,
         rerank: {

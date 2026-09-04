@@ -419,43 +419,68 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
     try {
       const adapter = this.app.vault.adapter
       const legacyDir = '.smtcmp_json_db'
-      const newDir = '.aide'
+      const aideDir = '.aide'
+      const newDir = '.aider'
 
+      // 1. Migrate old .smtcmp_json_db
       if (await adapter.exists(legacyDir)) {
-        if (!(await adapter.exists(newDir))) {
+        if (!(await adapter.exists(newDir)) && !(await adapter.exists(aideDir))) {
           await (adapter as any).rename(legacyDir, newDir)
-          console.log(`[Aide] Migrated legacy database directory "${legacyDir}" to "${newDir}"`)
+          console.log(`[Aider] Migrated legacy database directory "${legacyDir}" to "${newDir}"`)
         }
       }
 
+      // 2. Migrate .aide -> .aider
+      if (await adapter.exists(aideDir)) {
+        if (!(await adapter.exists(newDir))) {
+          await (adapter as any).rename(aideDir, newDir)
+          console.log(`[Aider] Migrated database directory "${aideDir}" to "${newDir}"`)
+        }
+      }
+
+      // 3. Ensure target directory structure exists
       if (!(await adapter.exists(newDir))) {
         await adapter.mkdir(newDir)
       }
 
-      // Migrate legacy root files
-      const legacyTar = '.smtcmp_vector_db.tar.gz'
-      const newTar = '.aide/vector_db.tar.gz'
-      if (await adapter.exists(legacyTar)) {
-        if (!(await adapter.exists(newTar))) {
-          await (adapter as any).rename(legacyTar, newTar)
-          console.log(`[Aide] Migrated legacy tar "${legacyTar}" to "${newTar}"`)
-        } else {
-          await adapter.remove(legacyTar)
+      const chatsDir = `${newDir}/chats`
+      if (!(await adapter.exists(chatsDir))) {
+        await adapter.mkdir(chatsDir)
+      }
+
+      const templatesDir = `${newDir}/templates`
+      if (!(await adapter.exists(templatesDir))) {
+        await adapter.mkdir(templatesDir)
+      }
+
+      // 4. Migrate legacy vector files
+      const legacyTars = ['.smtcmp_vector_db.tar.gz', '.aide/vector_db.tar.gz']
+      const newTar = '.aider/vector_db.tar.gz'
+      for (const oldTar of legacyTars) {
+        if (await adapter.exists(oldTar)) {
+          if (!(await adapter.exists(newTar))) {
+            await (adapter as any).rename(oldTar, newTar)
+            console.log(`[Aider] Migrated legacy tar "${oldTar}" to "${newTar}"`)
+          } else {
+            await adapter.remove(oldTar)
+          }
         }
       }
 
-      const legacyJson = '.smtcmp_vectors.json'
-      const newJson = '.aide/vectors.json'
-      if (await adapter.exists(legacyJson)) {
-        if (!(await adapter.exists(newJson))) {
-          await (adapter as any).rename(legacyJson, newJson)
-          console.log(`[Aide] Migrated legacy vectors file "${legacyJson}" to "${newJson}"`)
-        } else {
-          await adapter.remove(legacyJson)
+      const legacyJsons = ['.smtcmp_vectors.json', '.aide/vectors.json']
+      const newJson = '.aider/vectors.json'
+      for (const oldJson of legacyJsons) {
+        if (await adapter.exists(oldJson)) {
+          if (!(await adapter.exists(newJson))) {
+            await (adapter as any).rename(oldJson, newJson)
+            console.log(`[Aider] Migrated legacy vectors file "${oldJson}" to "${newJson}"`)
+          } else {
+            await adapter.remove(oldJson)
+          }
         }
       }
     } catch (e) {
-      console.warn('[Aide] Failed to migrate legacy files to .aide:', e)
+      console.warn('[Aider] Failed to migrate legacy files to .aider:', e)
     }
   }
 }
