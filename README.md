@@ -55,7 +55,7 @@
 ## 🚀 Quick Start & Usage
 
 ### 1. Installation
-1. Download `obsidian-aider.zip` (or `aider.zip`) from the [Latest Releases](https://github.com/vimbackground/obsidian-aider/releases/latest);
+1. Download **[`aider.zip`](https://github.com/vimbackground/obsidian-aider/releases/latest)** from the latest release;
 2. Extract the three files: `main.js`, `manifest.json`, and `styles.css`;
 3. Place them into your vault at `<Vault>/.obsidian/plugins/aider/`;
 4. In Obsidian, go to **Settings -> Community plugins**, reload, and enable **Aider**.

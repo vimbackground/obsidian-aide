@@ -11,7 +11,7 @@ This document provides detailed technical operations, local development commands
   - `main.js`: Bundled plugin entry (strictly controlled under ~2.1 MB);
   - `manifest.json`: Plugin manifest metadata;
   - `styles.css`: Native theme-adapted stylesheets.
-* **Release Archive**: `output/obsidian-aider.zip` & `output/aider.zip` (contains the 3 files above, ready for manual installation or distribution).
+* **Release Archive**: `output/aider.zip` (contains the 3 files above, ready for manual installation or distribution).
 
 ---
 
@@ -80,10 +80,9 @@ Developers **do not need to manually create Git tags or draft releases**:
   - If the version has already been released (normal commits): the pipeline exits cleanly in seconds without creating redundant releases.
   - If a new version is detected: it triggers the full release pipeline.
 - **Automated Tagging**: Automatically creates Git tag `X.Y.Z` (without `v` prefix, strictly required by Obsidian Community Plugins) pointing to the commit.
-- **Compilation & Packaging**: Runs `npm run build` and `scripts/package-zip.js` to bundle `output/obsidian-aider.zip` & `output/aider.zip`.
+- **Compilation & Packaging**: Runs `npm run build` and `scripts/package-zip.js` to bundle `output/aider.zip`.
 - **Release Notes Extraction**: Calls `scripts/extract-release-notes.js` to extract the corresponding version section from `RELEASE_NOTES.md` (with built-in fallback).
 - **Asset Publishing**: Automatically publishes the GitHub Release with attached assets:
-  - `obsidian-aider.zip`
   - `aider.zip`
   - `main.js`
   - `manifest.json`

@@ -88,7 +88,6 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            output/obsidian-aider.zip
             output/aider.zip
             output/obsidian-aider/main.js
             output/obsidian-aider/manifest.json

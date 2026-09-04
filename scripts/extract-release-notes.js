@@ -61,7 +61,7 @@ if (!extractedContent) {
 🎉 **Obsidian Aider** 新版本已发布！
 
 ### 📥 安装使用指引
-1. 下载下方附件中的 **\`obsidian-aider.zip\`**（或 **\`aider.zip\`**）；
+1. 下载下方附件中的 **\`aider.zip\`**；
 2. 解压得到三个文件：\`main.js\`、\`manifest.json\`、\`styles.css\`；
 3. 将这三个文件放置于您的 Obsidian 库目录中的 \`.obsidian/plugins/aider/\` 文件夹下；
 4. 进入 Obsidian **【设置】->【第三方插件】**，点击右上角刷新并开启 **Aider** 即可！

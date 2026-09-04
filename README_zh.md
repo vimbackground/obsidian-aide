@@ -55,7 +55,7 @@
 ## 🚀 快速上手与使用
 
 ### 1. 安装与启用
-1. 前往 [最新 Releases 页面](https://github.com/vimbackground/obsidian-aider/releases/latest) 下载 `obsidian-aider.zip`（或 `aider.zip`）；
+1. 前往 [最新 Releases 页面](https://github.com/vimbackground/obsidian-aider/releases/latest) 下载 **`aider.zip`**；
 2. 解压得到 `main.js`、`manifest.json`、`styles.css` 三个文件；
 3. 将它们放入笔记库目录 `<你的笔记库>/.obsidian/plugins/aider/`；
 4. 打开 Obsidian，进入 **设置 -> 第三方插件**，点击刷新并启用 **Aider**。
