@@ -34,7 +34,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION=$(node -p "require('./package.json').version")
+            TAG="v$VERSION"
+            echo "Triggered by manual dispatch. Force release: $TAG"
+            echo "SHOULD_RELEASE=true" >> $GITHUB_ENV
+            echo "TAG=$TAG" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
             TAG="${{ github.ref_name }}"
             echo "Triggered by tag push: $TAG"
             echo "SHOULD_RELEASE=true" >> $GITHUB_ENV
