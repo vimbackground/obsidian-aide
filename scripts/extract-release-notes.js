@@ -56,18 +56,18 @@ if (fs.existsSync(releaseNotesPath)) {
 
 // 兜底方案：如果未找到特定版本，生成通用的发布说明
 if (!extractedContent) {
-  extractedContent = `## Obsidian Aide ${targetTag}
+  extractedContent = `## Obsidian Aider ${targetTag}
 
-🎉 **Obsidian Aide** 新版本已发布！
+🎉 **Obsidian Aider** 新版本已发布！
 
 ### 📥 安装使用指引
-1. 下载下方附件中的 **\`obsidian-aide.zip\`**；
+1. 下载下方附件中的 **\`obsidian-aider.zip\`**（或 **\`aider.zip\`**）；
 2. 解压得到三个文件：\`main.js\`、\`manifest.json\`、\`styles.css\`；
-3. 将这三个文件放置于您的 Obsidian 库目录中的 \`.obsidian/plugins/obsidian-aide/\` 文件夹下；
-4. 进入 Obsidian **【设置】->【第三方插件】**，点击右上角刷新并开启 **Aide** 即可！
+3. 将这三个文件放置于您的 Obsidian 库目录中的 \`.obsidian/plugins/aider/\` 文件夹下；
+4. 进入 Obsidian **【设置】->【第三方插件】**，点击右上角刷新并开启 **Aider** 即可！
 
 ---
-*完整更新历史与文档请查阅仓库主页 [README.md](https://github.com/vimbackground/obsidian-aide)*
+*完整更新历史与文档请查阅仓库主页 [README.md](https://github.com/vimbackground/obsidian-aider)*
 `;
 }
 

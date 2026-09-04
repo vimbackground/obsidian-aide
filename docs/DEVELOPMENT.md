@@ -1,17 +1,17 @@
 # Developer & Technical Guide (开发与技术操作指南)
 
-This document provides detailed technical operations, local development commands, architectural standards, and automated release pipeline mechanics for developers and contributors of **Obsidian Aide**.
+This document provides detailed technical operations, local development commands, architectural standards, and automated release pipeline mechanics for developers and contributors of **Obsidian Aider**.
 
 ---
 
 ## 1. Project Architecture & Output Conventions
 
 * **Source Code**: [`src/`](../src) written in TypeScript & React 18.
-* **Output Directory**: All production artifacts are compiled to `output/obsidian-aide/`:
+* **Output Directory**: All production artifacts are compiled to `output/obsidian-aider/`:
   - `main.js`: Bundled plugin entry (strictly controlled under ~2.1 MB);
   - `manifest.json`: Plugin manifest metadata;
   - `styles.css`: Native theme-adapted stylesheets.
-* **Release Archive**: `output/obsidian-aide.zip` (contains the 3 files above, ready for manual installation or distribution).
+* **Release Archive**: `output/obsidian-aider.zip` & `output/aider.zip` (contains the 3 files above, ready for manual installation or distribution).
 
 ---
 
@@ -62,7 +62,7 @@ Developers **do not need to manually create Git tags or draft releases**:
    This script ([`scripts/bump-version.js`](../scripts/bump-version.js)) automatically synchronizes:
    - `package.json`
    - `manifest.json`
-   - `output/obsidian-aide/manifest.json`
+   - `output/obsidian-aider/manifest.json`
    - `versions.json` (Obsidian minAppVersion mapping)
 
 2. *(Optional)* Record update highlights at the top of [`RELEASE_NOTES.md`](../RELEASE_NOTES.md).
@@ -80,10 +80,11 @@ Developers **do not need to manually create Git tags or draft releases**:
   - If the version has already been released (normal commits): the pipeline exits cleanly in seconds without creating redundant releases.
   - If a new version is detected: it triggers the full release pipeline.
 - **Automated Tagging**: Automatically creates Git tag `vX.Y.Z` pointing to the commit.
-- **Compilation & Packaging**: Runs `npm run build` and `scripts/package-zip.js` to bundle `output/obsidian-aide.zip`.
+- **Compilation & Packaging**: Runs `npm run build` and `scripts/package-zip.js` to bundle `output/obsidian-aider.zip` & `output/aider.zip`.
 - **Release Notes Extraction**: Calls `scripts/extract-release-notes.js` to extract the corresponding version section from `RELEASE_NOTES.md` (with built-in fallback).
-- **Asset Publishing**: Automatically publishes the GitHub Release with 4 attached assets:
-  - `obsidian-aide.zip`
+- **Asset Publishing**: Automatically publishes the GitHub Release with attached assets:
+  - `obsidian-aider.zip`
+  - `aider.zip`
   - `main.js`
   - `manifest.json`
   - `styles.css`

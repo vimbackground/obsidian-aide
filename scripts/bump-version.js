@@ -6,7 +6,7 @@ const type = (process.argv[2] || 'patch').toLowerCase();
 
 const pkgPath = path.resolve(__dirname, '../package.json');
 const manifestPath = path.resolve(__dirname, '../manifest.json');
-const outputManifestPath = path.resolve(__dirname, '../output/obsidian-aide/manifest.json');
+const outputManifestPath = path.resolve(__dirname, '../output/obsidian-aider/manifest.json');
 const versionsPath = path.resolve(__dirname, '../versions.json');
 
 const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
@@ -40,7 +40,7 @@ if (fs.existsSync(manifestPath)) {
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
 }
 
-// 3. Update output/obsidian-aide/manifest.json if exists
+// 3. Update output/obsidian-aider/manifest.json if exists
 if (fs.existsSync(outputManifestPath)) {
   const outManifest = JSON.parse(fs.readFileSync(outputManifestPath, 'utf8'));
   outManifest.version = newVersion;

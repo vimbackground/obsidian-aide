@@ -1,9 +1,9 @@
 {
-  "id": "aide",
-  "name": "Aide",
+  "id": "aider",
+  "name": "Aider",
   "version": "0.8.3",
   "minAppVersion": "0.15.0",
   "description": "Chat with AI models to read, write, and explore your notes with zero-config native tools and vault knowledge retrieval.",
-  "author": "Aide Team",
+  "author": "Aider Team",
   "isDesktopOnly": false
 }

@@ -1,4 +1,4 @@
-# Obsidian Aide
+# Obsidian Aider
 
 <p align="center">
   <b>A quiet, native, and distraction-free AI companion crafted for Obsidian note creators, researchers, and thinkers.</b>
@@ -17,11 +17,11 @@
 
 ---
 
-## 💡 Why Obsidian Aide? (Value & Significance)
+## 💡 Why Obsidian Aider? (Value & Significance)
 
 Most AI plugins for Obsidian today fall into two extremes: they are either **overly engineered** (bloated with programming IDE features, diff merges, Node.js dependencies, and confusing menus) or **too shallow** (a glorified web wrapper that has no real connection to your notes).
 
-**Obsidian Aide takes a fundamentally different path:**
+**Obsidian Aider takes a fundamentally different path:**
 * **Zero Technical Barriers**: You **do not need Node.js**, programming environments, or complex configuration. Install it in 30 seconds, pick a model (including generous free models), and start chatting immediately;
 * **Native Coexistence**: It doesn't disrupt your writing. Styled with native Obsidian design variables, the conversational bubbles blend in seamlessly with light, dark, and community themes;
 * **A True Thinking Companion**: It lives alongside your vault. With a simple `@` mention, it reads your notes, summarizes lengthy research, uncovers hidden connections, and helps you write with clarity;
@@ -72,26 +72,26 @@ Most AI plugins for Obsidian today fall into two extremes: they are either **ove
 > No development tools or command-line experience required!
 
 ### Method 1: Direct Download (Recommended)
-1. Download **[`obsidian-aide.zip`](https://github.com/vimbackground/obsidian-aide/releases/latest)** from the latest release;
+1. Download **[`obsidian-aider.zip`](https://github.com/vimbackground/obsidian-aider/releases/latest)** (or **`aider.zip`**) from the latest release;
 2. Extract the archive. You will see three files: `main.js`, `manifest.json`, and `styles.css`;
 3. In your Obsidian vault, navigate to the hidden folder `.obsidian/plugins/` (create it if missing);
-4. Create a folder named **`aide`** and place the 3 files inside:
+4. Create a folder named **`aider`** and place the 3 files inside:
    ```text
-   <Your-Vault>/.obsidian/plugins/aide/
+   <Your-Vault>/.obsidian/plugins/aider/
    ├── main.js
    ├── manifest.json
    └── styles.css
    ```
-5. In Obsidian, go to **Settings -> Community plugins**, click the reload icon in the top right, and turn on **Aide**!
+5. In Obsidian, go to **Settings -> Community plugins**, click the reload icon in the top right, and turn on **Aider**!
 
 ### Method 2: Copy from Repository
-If you cloned this repository, simply copy the `output/obsidian-aide/` folder into your vault's `.obsidian/plugins/` directory.
+If you cloned this repository, simply copy the `output/obsidian-aider/` folder into your vault's `.obsidian/plugins/` directory.
 
 ---
 
 ## ⚙️ Recommended AI Models
 
-Open Obsidian **Settings -> Aide** to set up your provider:
+Open Obsidian **Settings -> Aider** to set up your provider:
 
 | Provider | Why Recommend | Recommended Model |
 | :--- | :--- | :--- |

@@ -39,7 +39,7 @@ export default class SmartComposerPlugin extends Plugin {
     this.registerView('smtcmp-chat-view', (leaf) => new ChatView(leaf, this))
 
     // This creates an icon in the left ribbon.
-    this.addRibbonIcon('wand-sparkles', '打开 Aide 助手', () =>
+    this.addRibbonIcon('wand-sparkles', '打开 Aider 助手', () =>
       this.openChatView(),
     )
 

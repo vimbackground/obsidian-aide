@@ -87,9 +87,10 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            output/obsidian-aide.zip
-            output/obsidian-aide/main.js
-            output/obsidian-aide/manifest.json
-            output/obsidian-aide/styles.css
+            output/obsidian-aider.zip
+            output/aider.zip
+            output/obsidian-aider/main.js
+            output/obsidian-aider/manifest.json
+            output/obsidian-aider/styles.css
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

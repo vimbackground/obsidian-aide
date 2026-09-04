@@ -18,7 +18,7 @@ const copyFilesPlugin = {
   name: 'copy-files-plugin',
   setup(build) {
     build.onEnd(() => {
-      const outDir = 'output/obsidian-aide'
+      const outDir = 'output/obsidian-aider'
       if (!fs.existsSync(outDir)) {
         fs.mkdirSync(outDir, { recursive: true })
       }
@@ -28,7 +28,7 @@ const copyFilesPlugin = {
       if (fs.existsSync('styles.css')) {
         fs.copyFileSync('styles.css', path.join(outDir, 'styles.css'))
       }
-      console.log('Copied manifest.json and styles.css to output/obsidian-aide/')
+      console.log('Copied manifest.json and styles.css to output/obsidian-aider/')
     })
   }
 }
@@ -61,10 +61,10 @@ const context = await esbuild.context({
     'process.env.NODE_ENV': JSON.stringify(prod ? 'production' : 'development'),
   },
   target: 'es2020',
-  logLevel: 'info', // 'debug' for more detailed output
+  logLevel: 'info',
   sourcemap: prod ? false : 'inline',
   treeShaking: true,
-  outfile: 'output/obsidian-aide/main.js',
+  outfile: 'output/obsidian-aider/main.js',
   minify: prod,
   plugins: [copyFilesPlugin],
 })

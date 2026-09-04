@@ -1,10 +1,10 @@
-# Release Notes: v0.8.3 - Obsidian Aide Official Release / 正式发布
+# Release Notes: v0.8.3 - Obsidian Aider Official Release / 正式发布
 
 ## 🌐 English
 
-🎉 Welcome to **Obsidian Aide**!
+🎉 Welcome to **Obsidian Aider**!
 
-Obsidian Aide is a lightweight, distraction-free AI companion designed for deep thinking, note-taking, and writing within Obsidian. Unlike bloated developer-heavy plugins, Aide focuses on pure conversational interaction and symbiotic knowledge creation. Users can enjoy built-in web search, tool integration, and multi-provider AI chat out of the box with zero runtime setup required.
+Obsidian Aider is a lightweight, distraction-free AI companion designed for deep thinking, note-taking, and writing within Obsidian. Unlike bloated developer-heavy plugins, Aider focuses on pure conversational interaction and symbiotic knowledge creation. Users can enjoy built-in web search, tool integration, and multi-provider AI chat out of the box with zero runtime setup required.
 
 ---
 
@@ -40,10 +40,10 @@ Obsidian Aide is a lightweight, distraction-free AI companion designed for deep 
 
 ### 📥 Installation Guide
 
-1. Download **`obsidian-aide.zip`** from the release assets below;
+1. Download **`obsidian-aider.zip`** (or **`aider.zip`**) from the release assets below;
 2. Extract the archive to find three files: `main.js`, `manifest.json`, and `styles.css`;
-3. Move these three files into your Obsidian vault under `.obsidian/plugins/aide/`;
-4. Go to Obsidian **Settings -> Community plugins**, reload, and enable **Aide**!
+3. Move these three files into your Obsidian vault under `.obsidian/plugins/aider/`;
+4. Go to Obsidian **Settings -> Community plugins**, reload, and enable **Aider**!
 
 ---
 
@@ -55,9 +55,9 @@ This project is inspired by and built upon the excellent open-source project [ob
 
 ## 🇨🇳 中文说明 (Chinese)
 
-🎉 欢迎使用 **Obsidian Aide**！
+🎉 欢迎使用 **Obsidian Aider**！
 
-Obsidian Aide 是一款轻量级、去干扰、以深度思考与创作为中心的 Obsidian AI 伴侣。不同于臃肿复杂的开发型插件，Aide 回归纯粹的聊天交互与笔记共生体验，普通用户无需安装 Node.js 即可开箱畅享免翻墙联网搜索与多模型问答。
+Obsidian Aider 是一款轻量级、去干扰、以深度思考与创作为中心的 Obsidian AI 伴侣。不同于臃肿复杂的开发型插件，Aider 回归纯粹的聊天交互与笔记共生体验，普通用户无需安装 Node.js 即可开箱畅享免翻墙联网搜索与多模型问答。
 
 ---
 
@@ -93,10 +93,10 @@ Obsidian Aide 是一款轻量级、去干扰、以深度思考与创作为中心
 
 ### 📥 安装使用指南
 
-1. 下载下方附件中的 **`obsidian-aide.zip`**；
+1. 下载下方附件中的 **`obsidian-aider.zip`**（或 **`aider.zip`**）；
 2. 解压得到三个文件：`main.js`、`manifest.json`、`styles.css`；
-3. 将这三个文件放置于您的 Obsidian 库目录中的 `.obsidian/plugins/aide/` 文件夹下；
-4. 进入 Obsidian **【设置】->【第三方插件】**，点击刷新并开启 **Aide** 即可！
+3. 将这三个文件放置于您的 Obsidian 库目录中的 `.obsidian/plugins/aider/` 文件夹下；
+4. 进入 Obsidian **【设置】->【第三方插件】**，点击刷新并开启 **Aider** 即可！
 
 ---
 

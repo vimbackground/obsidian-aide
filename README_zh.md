@@ -1,4 +1,4 @@
-# Obsidian Aide
+# Obsidian Aider
 
 <p align="center">
   <b>轻量、去干扰、与笔记共生的 Obsidian 原生 AI 伴侣，专为笔记创作者、学者与深度思考者打造。</b>
@@ -17,11 +17,11 @@
 
 ---
 
-## 💡 为什么需要 Obsidian Aide？（价值与意义）
+## 💡 为什么需要 Obsidian Aider？（价值与意义）
 
 当下 Obsidian 生态中的各类 AI 插件往往走向两个极端：要么**过于技术化、工程化**（充斥着程序员专属的代码合并 Diff 按钮、繁杂的多层侧边栏、必须安装配置 Node.js 运行环境），要么**过于浅层**（仅仅是一个与笔记毫无互动的网页套壳）。
 
-**Obsidian Aide 选择了完全不同的产品路线：**
+**Obsidian Aider 选择了完全不同的产品路线：**
 * **零技术门槛，开箱即用**：普通笔记用户**完全不需要懂编程，也无需安装 Node.js 或配置复杂的本地命令行**。下载解压 30 秒即可在 Obsidian 中启用；
 * **视觉与体验原生共生**：不做突兀的外来物。短信式气泡完美对齐 Obsidian 官方设计变量，自动融入浅色、深色及任何第三方精美主题；
 * **真正的知识库伴侣**：不喧宾夺主。随时通过 `@` 键引用当前库中的笔记与文献，在阅读长文时边读边聊、提炼要点、对比观点；
@@ -72,26 +72,26 @@
 > 普通用户**强烈推荐直接使用打包好的发布包**，无需任何开发工具或命令行操作！
 
 ### 方式一：直接下载安装包（首选推荐）
-1. 在本仓库的 [最新 Releases 页面](https://github.com/vimbackground/obsidian-aide/releases/latest) 中下载 **`obsidian-aide.zip`**；
+1. 在本仓库的 [最新 Releases 页面](https://github.com/vimbackground/obsidian-aider/releases/latest) 中下载 **`obsidian-aider.zip`**（或 **`aider.zip`**）；
 2. 解压该压缩包，确认得到三个文件：`main.js`、`manifest.json`、`styles.css`；
 3. 打开您的 Obsidian 笔记库文件夹，找到并进入隐藏目录 `.obsidian/plugins/`（如果没有该目录可手动新建）；
-4. 在其中新建一个名为 **`aide`** 的文件夹，并将这 3 个文件放入：
+4. 在其中新建一个名为 **`aider`** 的文件夹，并将这 3 个文件放入：
    ```text
-   <您的笔记库>/.obsidian/plugins/aide/
+   <您的笔记库>/.obsidian/plugins/aider/
    ├── main.js
    ├── manifest.json
    └── styles.css
    ```
-5. 打开 Obsidian，进入 **【设置】->【第三方插件】**，点击右上角刷新图标，找到 **Aide** 并开启即可！
+5. 打开 Obsidian，进入 **【设置】->【第三方插件】**，点击右上角刷新图标，找到 **Aider** 并开启即可！
 
 ### 方式二：直接从仓库 output 目录获取
-如果您已将本项目克隆或下载到本地，直接将本仓库中的 `output/obsidian-aide/` 整个文件夹复制到您的 `.obsidian/plugins/` 目录下即可。
+如果您已将本项目克隆或下载到本地，直接将本仓库中的 `output/obsidian-aider/` 整个文件夹复制到您的 `.obsidian/plugins/` 目录下即可。
 
 ---
 
 ## ⚙️ 推荐模型与配置建议
 
-进入 Obsidian **【设置】->【Aide】** 面板，填入模型服务商信息：
+进入 Obsidian **【设置】->【Aider】** 面板，填入模型服务商信息：
 
 | 服务商 | 为什么推荐普通用户使用 | 推荐日常对话模型 |
 | :--- | :--- | :--- |
