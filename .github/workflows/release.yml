@@ -2,6 +2,8 @@ name: Release Obsidian plugin
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
       - '[0-9]+.[0-9]+.[0-9]+*'
@@ -11,12 +13,14 @@ permissions:
   contents: write
 
 jobs:
-  build-and-release:
+  check-and-release:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -24,25 +28,55 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Determine Version and Check Release Status
+        id: check_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${{ github.ref_name }}"
+            echo "Triggered by tag push: $TAG"
+            echo "SHOULD_RELEASE=true" >> $GITHUB_ENV
+            echo "TAG=$TAG" >> $GITHUB_ENV
+          else
+            VERSION=$(node -p "require('./package.json').version")
+            TAG="v$VERSION"
+            echo "Triggered by branch push. Package version is $VERSION -> Target tag: $TAG"
+
+            # 检查 GitHub Releases 是否已存在该 Tag 对应的 Release
+            if gh release view "$TAG" > /dev/null 2>&1; then
+              echo "Release $TAG already exists on GitHub. Skipping release creation."
+              echo "SHOULD_RELEASE=false" >> $GITHUB_ENV
+            else
+              echo "New release detected! Tag $TAG does not exist yet. Proceeding with release."
+              echo "SHOULD_RELEASE=true" >> $GITHUB_ENV
+              echo "TAG=$TAG" >> $GITHUB_ENV
+            fi
+          fi
+
       - name: Install dependencies
+        if: env.SHOULD_RELEASE == 'true'
         run: npm ci
 
       - name: Build plugin
+        if: env.SHOULD_RELEASE == 'true'
         run: npm run build
 
       - name: Package zip archive
+        if: env.SHOULD_RELEASE == 'true'
         run: node scripts/package-zip.js
 
       - name: Extract Release Notes
-        id: notes
-        run: |
-          tag="${{ github.ref_name }}"
-          node scripts/extract-release-notes.js "$tag" release_notes.md
+        if: env.SHOULD_RELEASE == 'true'
+        run: node scripts/extract-release-notes.js "${{ env.TAG }}" release_notes.md
 
       - name: Create GitHub Release
+        if: env.SHOULD_RELEASE == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ github.ref_name }}
+          tag_name: ${{ env.TAG }}
+          name: ${{ env.TAG }}
           body_path: release_notes.md
           draft: false
           prerelease: false

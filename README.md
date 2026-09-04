@@ -138,34 +138,31 @@ npm run lint:check
 npm test
 ```
 
-### 3. 版本升级与 GitHub 自动化 Release 流程
-本项目已配置 GitHub Actions 自动化流水线（`.github/workflows/release.yml`）。当您需要发布新版本时，仅需遵循以下三步：
+### 3. 一步极速发布流程（Push 即发版）
+本项目已配置智能云端流水线（`.github/workflows/release.yml`），**本地无需手动打 Tag，也无需执行复杂发版命令**。发布新版本仅需一步：
 
 1. **升级版本号**（自动同步 `package.json`、`manifest.json`、`versions.json` 等）：
    ```bash
-   npm run bump:patch   # 小更新 (0.8.3 -> 0.8.4)
+   npm run bump:patch   # 小升级 (0.8.3 -> 0.8.4)
    # 或 npm run bump:minor (0.8.3 -> 0.9.0)
    # 或 npm run bump:major (0.8.3 -> 1.0.0)
    ```
-2. **在 `RELEASE_NOTES.md` 顶部记录新版本的更新内容**：
-   ```markdown
-   ## v0.8.4
-   - 修复了 xxx 问题；
-   - 优化了 xxx 体验。
-   ```
-3. **提交代码并推送版本标签（Tag）**：
+   *(可选：在 `RELEASE_NOTES.md` 顶部记录新版本的详细更新说明，若未填写将自动使用友好发布模板)*
+
+2. **提交并推送至 GitHub（一步解决）**：
    ```bash
    git add .
    git commit -m "chore: release v0.8.4"
-   git tag v0.8.4
-   git push origin main --tags
+   git push origin main
    ```
 
-**云端自动完成**：
-- GitHub Actions 检测到 `v*` 标签推送后，将自动检出代码、编译构建插件；
-- 自动打包生成最新的 **`obsidian-aide.zip`**；
-- 自动从 `RELEASE_NOTES.md` 中截取对应的版本更新说明；
-- 自动在 GitHub Releases 中创建该版本的正式发布页面，并挂载 `obsidian-aide.zip`、`main.js`、`manifest.json`、`styles.css` 全部附件！
+**云端全自动处理一切**：
+- GitHub Actions 监听到 `main` 分支代码推送后，自动比对当前 `package.json` 中的版本号；
+- 若检测到新版本号（尚未发布过 Release），云端自动为该次提交创建 `v0.8.4` 标签；
+- 自动在云端执行构建并打包生成最新的 **`obsidian-aide.zip`**；
+- 自动提取并解析对应的版本更新说明；
+- 自动在 GitHub Releases 中创建正式发布页面，挂载 `obsidian-aide.zip`、`main.js`、`manifest.json`、`styles.css` 全部附件！
+- 若仅为普通日常代码提交（版本号未变更），流水线检测到已发布后自动跳过，绝不产生重复 Release。
 
 </details>
 
