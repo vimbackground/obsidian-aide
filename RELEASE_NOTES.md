@@ -1,3 +1,21 @@
+# Release Notes: v0.11.0 - Obsidian Aider Official Release / 正式发布
+
+## 🌐 English
+- **Interactive In-Place Question Editing**: Double-clicking on any user message bubble directly activates in-place editing mode, allowing fast query modification and seamless re-generation.
+- **Unified Directory Migration**: Standardized the vault configuration and storage directory from `.aide` to `.aider`, with automatic background migration on startup.
+- **Streamlined MCP Tool Interface**: Removed internal sandbox security banners from the MCP settings tab to deliver a cleaner, distraction-free configuration experience.
+- **Robust Long Filename Handling**: Resolved potential Windows path length overflow (>255 chars) during chat session and template title encoding, ensuring reliable multi-language vault synchronization.
+- **Version Bump**: Updated to version `0.11.0`.
+
+## 🇨🇳 中文说明
+- **双击编辑历史提问**：前端对话界面中，双击任意用户消息气泡即可直接进入就地编辑状态，支持快速修改与重新生成。
+- **项目存储目录规范化**：存储与配置目录全面规范为 `.aider`，启动时自动平滑迁移历史 `.aide` 目录，无缝兼容老版本数据。
+- **MCP 界面极简精简**：移除 MCP 工具面板中冗余的“纯净沙箱安全模式”提示，为普通用户提供更清爽直观的交互界面。
+- **中文与长文件名防溢出优化**：重构对话历史与模板命名逻辑，彻底解决 Windows 系统下因 URL 编码导致的长文件名路径超限（>255 字符）报错问题。
+- **版本发布**：版本号升级为 `0.11.0`。
+
+---
+
 # Release Notes: v0.10.0 - Obsidian Aider Official Release / 正式发布
 
 ## 🌐 English
