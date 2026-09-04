@@ -1,9 +1,9 @@
 {
-  "id": "obsidian-aide",
+  "id": "aide",
   "name": "Aide",
   "version": "0.8.3",
   "minAppVersion": "0.15.0",
-  "description": "轻量级 Obsidian AI 助手，专注文档查阅、编写与创作，支持多模型服务商与向量知识检索。",
+  "description": "Chat with AI models to read, write, and explore your notes with zero-config native tools and vault knowledge retrieval.",
   "author": "Aide Team",
   "isDesktopOnly": false
 }

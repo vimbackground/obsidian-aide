@@ -42,7 +42,7 @@ Obsidian Aide is a lightweight, distraction-free AI companion designed for deep 
 
 1. Download **`obsidian-aide.zip`** from the release assets below;
 2. Extract the archive to find three files: `main.js`, `manifest.json`, and `styles.css`;
-3. Move these three files into your Obsidian vault under `.obsidian/plugins/obsidian-aide/`;
+3. Move these three files into your Obsidian vault under `.obsidian/plugins/aide/`;
 4. Go to Obsidian **Settings -> Community plugins**, reload, and enable **Aide**!
 
 ---
@@ -95,7 +95,7 @@ Obsidian Aide 是一款轻量级、去干扰、以深度思考与创作为中心
 
 1. 下载下方附件中的 **`obsidian-aide.zip`**；
 2. 解压得到三个文件：`main.js`、`manifest.json`、`styles.css`；
-3. 将这三个文件放置于您的 Obsidian 库目录中的 `.obsidian/plugins/obsidian-aide/` 文件夹下；
+3. 将这三个文件放置于您的 Obsidian 库目录中的 `.obsidian/plugins/aide/` 文件夹下；
 4. 进入 Obsidian **【设置】->【第三方插件】**，点击刷新并开启 **Aide** 即可！
 
 ---

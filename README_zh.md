@@ -75,9 +75,9 @@
 1. 在本仓库的 [最新 Releases 页面](https://github.com/vimbackground/obsidian-aide/releases/latest) 中下载 **`obsidian-aide.zip`**；
 2. 解压该压缩包，确认得到三个文件：`main.js`、`manifest.json`、`styles.css`；
 3. 打开您的 Obsidian 笔记库文件夹，找到并进入隐藏目录 `.obsidian/plugins/`（如果没有该目录可手动新建）；
-4. 在其中新建一个名为 **`obsidian-aide`** 的文件夹，并将这 3 个文件放入：
+4. 在其中新建一个名为 **`aide`** 的文件夹，并将这 3 个文件放入：
    ```text
-   <您的笔记库>/.obsidian/plugins/obsidian-aide/
+   <您的笔记库>/.obsidian/plugins/aide/
    ├── main.js
    ├── manifest.json
    └── styles.css

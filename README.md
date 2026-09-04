@@ -75,9 +75,9 @@ Most AI plugins for Obsidian today fall into two extremes: they are either **ove
 1. Download **[`obsidian-aide.zip`](https://github.com/vimbackground/obsidian-aide/releases/latest)** from the latest release;
 2. Extract the archive. You will see three files: `main.js`, `manifest.json`, and `styles.css`;
 3. In your Obsidian vault, navigate to the hidden folder `.obsidian/plugins/` (create it if missing);
-4. Create a folder named **`obsidian-aide`** and place the 3 files inside:
+4. Create a folder named **`aide`** and place the 3 files inside:
    ```text
-   <Your-Vault>/.obsidian/plugins/obsidian-aide/
+   <Your-Vault>/.obsidian/plugins/aide/
    ├── main.js
    ├── manifest.json
    └── styles.css
