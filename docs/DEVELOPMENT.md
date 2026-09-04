@@ -70,7 +70,7 @@ Developers **do not need to manually create Git tags or draft releases**:
 3. **Commit and push to `main`**:
    ```bash
    git add .
-   git commit -m "chore: release v0.8.4"
+   git commit -m "chore: release 0.8.4"
    git push origin main
    ```
 
@@ -79,7 +79,7 @@ Developers **do not need to manually create Git tags or draft releases**:
   The workflow checks `package.json` version against existing GitHub Releases via `gh release view`.
   - If the version has already been released (normal commits): the pipeline exits cleanly in seconds without creating redundant releases.
   - If a new version is detected: it triggers the full release pipeline.
-- **Automated Tagging**: Automatically creates Git tag `vX.Y.Z` pointing to the commit.
+- **Automated Tagging**: Automatically creates Git tag `X.Y.Z` (without `v` prefix, strictly required by Obsidian Community Plugins) pointing to the commit.
 - **Compilation & Packaging**: Runs `npm run build` and `scripts/package-zip.js` to bundle `output/obsidian-aider.zip` & `output/aider.zip`.
 - **Release Notes Extraction**: Calls `scripts/extract-release-notes.js` to extract the corresponding version section from `RELEASE_NOTES.md` (with built-in fallback).
 - **Asset Publishing**: Automatically publishes the GitHub Release with attached assets:

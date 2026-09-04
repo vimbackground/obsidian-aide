@@ -36,18 +36,19 @@ jobs:
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             VERSION=$(node -p "require('./package.json').version")
-            TAG="v$VERSION"
+            TAG="$VERSION"
             echo "Triggered by manual dispatch. Force release: $TAG"
             echo "SHOULD_RELEASE=true" >> $GITHUB_ENV
             echo "TAG=$TAG" >> $GITHUB_ENV
           elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
             TAG="${{ github.ref_name }}"
+            TAG="${TAG#v}" # Obsidian 官方规范强制要求 tag 不能带 'v' 前缀
             echo "Triggered by tag push: $TAG"
             echo "SHOULD_RELEASE=true" >> $GITHUB_ENV
             echo "TAG=$TAG" >> $GITHUB_ENV
           else
             VERSION=$(node -p "require('./package.json').version")
-            TAG="v$VERSION"
+            TAG="$VERSION" # Obsidian 官方要求 tag 必须与 manifest.json 的 version 完全一致（例如 0.8.3，不能加 v）
             echo "Triggered by branch push. Package version is $VERSION -> Target tag: $TAG"
 
             # 检查 GitHub Releases 是否已存在该 Tag 对应的 Release
