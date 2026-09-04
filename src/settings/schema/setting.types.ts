@@ -140,7 +140,7 @@ export const smartComposerSettingsSchema = z.object({
       runtimeProfile: 'eco',
     }),
 
-  language: z.enum(['en', 'zh', 'zh-CN', 'auto']).catch('zh'),
+  language: z.enum(['en', 'zh', 'zh-CN', 'auto']).catch('en'),
 })
 export type SmartComposerSettings = z.infer<typeof smartComposerSettingsSchema>
 

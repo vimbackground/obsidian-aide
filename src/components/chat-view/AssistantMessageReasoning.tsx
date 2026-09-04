@@ -12,7 +12,7 @@ const AssistantMessageReasoning = memo(function AssistantMessageReasoning({
   reasoning: string
 }) {
   const { settings } = useSettings()
-  const language = settings.language ?? 'zh'
+  const language = settings.language ?? 'en'
   const isZh = language === 'zh' || language === 'zh-CN'
   const [isExpanded, setIsExpanded] = useState(false)
   const [showLoader, setShowLoader] = useState(false)

@@ -70,7 +70,7 @@ const BUILTIN_TOOLS_CONFIG: BuiltinToolInfo[] = [
 
 export function McpSection({ app, plugin }: McpSectionProps) {
   const { settings, setSettings } = useSettings()
-  const language = settings.language ?? 'zh'
+  const language = settings.language ?? 'en'
   const isZh = language === 'zh'
 
   const [mcpManager, setMcpManager] = useState<McpManager | null>(null)

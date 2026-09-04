@@ -157,7 +157,7 @@ function ToolCallItem({
   }, [request.arguments])
 
   const { settings } = useSettings()
-  const language = settings.language ?? 'zh'
+  const language = settings.language ?? 'en'
 
   return (
     <div className="aide-toolcall">

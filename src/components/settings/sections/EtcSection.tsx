@@ -40,7 +40,7 @@ export function EtcSection({ app }: EtcSectionProps) {
         desc={t('settings.languageDesc')}
       >
         <select 
-          value={settings.language || 'zh'} 
+          value={settings.language || 'en'} 
           onChange={(e) => setSettings({ ...settings, language: e.target.value as any })}
           className="dropdown"
         >

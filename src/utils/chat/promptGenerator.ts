@@ -437,7 +437,9 @@ ${await this.getWebsiteContent(url)}
 
   private getSystemMessage(shouldUseRAG: boolean): RequestMessage {
     const isEco = (this.settings.chatOptions.runtimeProfile ?? 'eco') === 'eco'
-    const toolConvergenceDirective = isEco
+    const isZh = (this.settings.language ?? 'en') === 'zh' || (this.settings.language ?? 'en') === 'zh-CN'
+
+    const toolConvergenceDirectiveZh = isEco
       ? `\n\n【工具使用规范与收敛纪律】：
 1. 仅在回答用户提问确实需要实时事实（如最新资讯、天气、外部网页）时调用工具。
 2. 原则上针对单次提问最多只允许进行 1 轮针对性检索（如必应搜索），严禁对搜索结果中出现的网址逐个递归发起抓取（禁止无节制 web_fetch）。
@@ -450,11 +452,26 @@ ${await this.getWebsiteContent(url)}
 3. 【信息检索坦诚原则】：若特定细节数据公开检索 1~2 次未果，应如实向用户说明，并结合已知行业发展概况给出对比，严禁无休止反复换词重试。
 4. 【语法严禁】：严禁在回复正文中直接输出任何形如 <tool_call>、<|DSML|> 或 XML/函数代码块，工具调用必须且只能通过系统规范函数接口发起。`
 
-    const basePrompt = `You are Aide, an intelligent AI assistant helping the user read, write, organize notes and solve problems in Obsidian.
+    const toolConvergenceDirectiveEn = isEco
+      ? `\n\n[Tool Usage Discipline & Rate Control]:
+1. Only invoke tools when real-time facts (e.g., latest news, weather, external web pages) are genuinely needed.
+2. Limit to at most 1 targeted search round (e.g., Bing search) per query. Do not recursively fetch each URL from search results.
+3. Once tool data is obtained, immediately stop calling tools and deliver an objective, detailed, and structured final answer. Avoid multi-turn tool loops.
+4. [Honesty in Search]: If a search for a specific statistic yields no direct result after 1 attempt, honestly explain that it is not directly available in public sources and provide an objective comparison based on industry benchmarks. Do not repeatedly retry with different keywords.
+5. [Syntax Rules]: Never output raw tags like <tool_call>, <|DSML|>, or XML/function blocks directly in the response text; tool calls must only be executed through standard system function call interfaces.`
+      : `\n\n[Tool Usage Guidelines]:
+1. Reasonably invoke tools when external facts or in-depth research are needed.
+2. After obtaining key information, synthesize all materials to provide a high-quality, professional response.
+3. [Honesty in Search]: If specific data is not found after 1-2 attempts, explain truthfully instead of endlessly retrying.
+4. [Syntax Rules]: Never output raw tags like <tool_call>, <|DSML|>, or XML/function blocks directly in the response text; tool calls must only be executed through standard system function call interfaces.`
+
+    const toolConvergenceDirective = isZh ? toolConvergenceDirectiveZh : toolConvergenceDirectiveEn
+
+    const basePrompt = `You are Aider, an intelligent AI assistant helping the user read, write, organize notes and solve problems in Obsidian.
 
 1. Please keep your response objective, concise, and logically structured.
 2. Format your response strictly in standard markdown (headings, lists, tables, code blocks). Do not invent false facts.
-3. Always respond in the same language as the user's prompt (default to Chinese).${toolConvergenceDirective}`
+3. Always respond in the same language as the user's prompt (default to English).${toolConvergenceDirective}`
 
     const ragPrompt = `${basePrompt}
 4. You may be provided with relevant contextual blocks from the user's vault. Reference the facts faithfully without inventing facts.`

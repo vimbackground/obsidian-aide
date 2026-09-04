@@ -52,11 +52,15 @@ export const GEMINI_CODE_ASSIST_HEADERS = {
 } as const
 
 // Default model ids
-export const DEFAULT_CHAT_MODEL_ID = ''
+export const DEFAULT_CHAT_MODEL_ID = 'deepseek-ai/DeepSeek-V4-Flash'
 export const DEFAULT_APPLY_MODEL_ID = ''
 
 // Recommended model ids
-export const RECOMMENDED_MODELS_FOR_CHAT = ['claude-sonnet-4.5', 'gpt-5.2']
+export const RECOMMENDED_MODELS_FOR_CHAT = [
+  'deepseek-ai/DeepSeek-V4-Flash',
+  'claude-sonnet-4.5',
+  'gpt-5.2',
+]
 export const RECOMMENDED_MODELS_FOR_APPLY = ['gpt-4.1-mini']
 export const RECOMMENDED_MODELS_FOR_EMBEDDING = [
   'openai/text-embedding-3-small',
@@ -270,9 +274,8 @@ export const DEFAULT_PROVIDERS: readonly LLMProvider[] = [
     id: PROVIDER_TYPES_INFO.deepseek.defaultProviderId,
   },
   {
-    type: 'groq',
-    id: PROVIDER_TYPES_INFO.groq.defaultProviderId,
-    baseUrl: 'https://api.groq.com/openai/v1',
+    type: 'openrouter',
+    id: PROVIDER_TYPES_INFO.openrouter.defaultProviderId,
   },
   {
     type: 'siliconflow',
@@ -294,22 +297,15 @@ export const DEFAULT_CHAT_MODELS: readonly ChatModel[] = [
     model: 'deepseek-ai/DeepSeek-V4-Flash',
     enable: true,
   },
-  {
-    providerType: 'groq',
-    providerId: PROVIDER_TYPES_INFO.groq.defaultProviderId,
-    id: 'qwen/qwen3.8-27b',
-    model: 'qwen/qwen3.8-27b',
-    enable: true,
-  },
 ]
 
-export const DEFAULT_SYSTEM_PROMPT = `你是由 Aide 驱动的智能助手与创作协作者。你的职责是客观、中立、准确地协助用户查阅、理解、撰写与处理文档与各类任务。
+export const DEFAULT_SYSTEM_PROMPT = `You are an intelligent assistant and creative collaborator powered by Aider. Your responsibility is to objectively, neutrally, and accurately assist users with reading, understanding, writing, and processing documents and various tasks.
 
-### 核心准则与行为规范：
-1. **客观中立与无预设立场**：始终保持理性、严谨、中立的立场，不预设主观观念与价值偏见。对开放性或存在争议的议题，客观陈述不同视角与事实证据。
-2. **标准 Markdown 规范**：严格遵循通用标准的 Markdown 格式输出（合理使用分级标题、段落、列表、表格、代码块等），保证文本在任意 Markdown 编辑器中均有良好的兼容性与排版呈现。
-3. **忠实于参考事实**：当用户在对话中引用笔记、文档或上下文材料时，优先基于所提供的材料事实进行严密分析与回答；若材料不足或无法推断，如实告知用户，不凭空编造事实。
-4. **精炼高效与逻辑严密**：行文简练明晰，直奔核心主题，条理分明，避免空话与冗余套话。`
+### Core Principles & Guidelines:
+1. **Objectivity and Neutrality**: Always maintain a rational, rigorous, and neutral stance without presupposed subjective opinions or value biases. Present different perspectives and factual evidence objectively on open-ended or controversial topics.
+2. **Standard Markdown Format**: Strictly adhere to standard Markdown formatting (appropriate use of heading levels, paragraphs, lists, tables, code blocks, etc.) to ensure optimal compatibility and layout across any Markdown editor.
+3. **Fidelity to Reference Facts**: When the user references notes, documents, or contextual materials in the conversation, prioritize rigorous analysis and responses based strictly on the provided factual materials. If materials are insufficient or facts cannot be deduced, truthfully inform the user without fabricating facts.
+4. **Conciseness and Rigorous Logic**: Keep writing concise, well-structured, and directly focused on the core topic, avoiding empty rhetoric and redundant boilerplate.`
 
 
 /**

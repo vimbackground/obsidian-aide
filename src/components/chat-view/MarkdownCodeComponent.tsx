@@ -19,7 +19,7 @@ export default function MarkdownCodeComponent({
   const app = useApp()
   const { isDarkMode } = useDarkModeContext()
   const { settings } = useSettings()
-  const languageSetting = settings.language ?? 'zh'
+  const languageSetting = settings.language ?? 'en'
 
   const [copied, setCopied] = useState(false)
 

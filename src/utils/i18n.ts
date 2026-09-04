@@ -21,7 +21,7 @@ export const translations: Record<'en' | 'zh', Record<string, string>> = {
     'common.selectModel': 'Select model...',
 
     // Settings Header & Sections
-    'settings.title': 'Aide Settings',
+    'settings.title': 'Aider Settings',
     'settings.chat': 'Chat Settings',
     'settings.chatModel': 'Chat Model',
     'settings.chatModelDesc': 'Choose the default model used for intelligence and conversation.',
@@ -90,7 +90,7 @@ export const translations: Record<'en' | 'zh', Record<string, string>> = {
     'common.selectModel': '选择模型...',
 
     // 设置主栏目
-    'settings.title': 'Aide 设置',
+    'settings.title': 'Aider 设置',
     'settings.chat': '对话设置',
     'settings.chatModel': '对话模型',
     'settings.chatModelDesc': '选择默认用于智能问答与对话的模型。',
@@ -143,9 +143,9 @@ export const translations: Record<'en' | 'zh', Record<string, string>> = {
 
 export type Language = 'en' | 'zh' | 'zh-CN' | 'auto'
 
-export function getLanguage(settingsLanguage: string = 'zh'): 'en' | 'zh' {
+export function getLanguage(settingsLanguage: string = 'en'): 'en' | 'zh' {
   if (settingsLanguage === 'auto') {
-    const navLang = typeof navigator !== 'undefined' ? navigator.language.toLowerCase() : 'zh'
+    const navLang = typeof navigator !== 'undefined' ? navigator.language.toLowerCase() : 'en'
     if (navLang.startsWith('zh')) return 'zh'
     return 'en'
   }
@@ -155,14 +155,14 @@ export function getLanguage(settingsLanguage: string = 'zh'): 'en' | 'zh' {
   return 'en'
 }
 
-export function translate(key: string, language: string = 'zh', defaultText?: string): string {
+export function translate(key: string, language: string = 'en', defaultText?: string): string {
   const lang = getLanguage(language)
   return translations[lang]?.[key] ?? translations['en']?.[key] ?? defaultText ?? key
 }
 
 export function useI18n() {
   const { settings } = useSettings()
-  const lang = getLanguage(settings?.language ?? 'zh')
+  const lang = getLanguage(settings?.language ?? 'en')
 
   const t = (key: string, defaultText?: string): string => {
     return translations[lang]?.[key] ?? translations['en']?.[key] ?? defaultText ?? key

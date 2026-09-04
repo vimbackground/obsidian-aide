@@ -1,3 +1,23 @@
+# Release Notes: v0.9.0 - Obsidian Aider Official Release / 正式发布
+
+## 🌐 English
+- **Default Language**: English is now the default interface and system prompt language.
+- **Global System Prompt**: Standardized to English, brand name updated to "Aider".
+- **Runtime Profile**: Defaulted to Free Tier / Eco mode (`eco`) with rate-control discipline and token efficiency.
+- **Retained Providers**: Core lineup streamlined to 4 primary providers: OpenAI, DeepSeek, OpenRouter, and SiliconFlow.
+- **Default Chat Model**: Set to 1 model by default: SiliconFlow's `deepseek-ai/DeepSeek-V4-Flash`.
+- **Version Bump**: Bumped to version `0.9.0`.
+
+## 🇨🇳 中文说明
+- **默认语言**：项目语言默认为英文（支持随时在设置中切回中文）。
+- **全局系统提示词**：改为英文版，并将提示词中的 Aide 规范为 Aider。
+- **服务层级**：默认为免费层模式（🌱 Eco Mode，严格控流、精简 Token、防 429）。
+- **模型服务商**：精简保留 4 家核心模型服务商（OpenAI、DeepSeek、OpenRouter、SiliconFlow）。
+- **对话模型**：默认配置 1 个对话模型（SiliconFlow 的 `deepseek-ai/DeepSeek-V4-Flash`）。
+- **版本发布**：版本号升级为 `0.9.0`。
+
+---
+
 # Release Notes: v0.8.3 - Obsidian Aider Official Release / 正式发布
 
 ## 🌐 English

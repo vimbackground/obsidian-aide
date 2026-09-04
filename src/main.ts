@@ -6,6 +6,7 @@ import { InstallerUpdateRequiredModal } from './components/modals/InstallerUpdat
 import {
   CHAT_VIEW_TYPE,
   DEFAULT_CHAT_MODELS,
+  DEFAULT_CHAT_MODEL_ID,
   DEFAULT_PROVIDERS,
 } from './constants'
 import { McpManager } from './core/mcp/mcpManager'
@@ -213,8 +214,8 @@ export default class SmartComposerPlugin extends Plugin {
       this.settings.mcp.servers = deduplicatedServers
     }
 
-    // 1. 服务商精简：仅保留 openai, deepseek, groq, siliconflow，过滤未填写 Key 的其余服务商
-    const allowedProviderTypes = new Set(['openai', 'deepseek', 'groq', 'siliconflow'])
+    // 1. 服务商精简：仅保留 openai, deepseek, openrouter, siliconflow，过滤未填写 Key 的其余服务商
+    const allowedProviderTypes = new Set(['openai', 'deepseek', 'openrouter', 'siliconflow'])
     const existingProviders = this.settings.providers || []
     const filteredProviders = existingProviders.filter((p) => {
       if (allowedProviderTypes.has(p.type)) return true
@@ -227,8 +228,11 @@ export default class SmartComposerPlugin extends Plugin {
     }
     this.settings.providers = filteredProviders
 
-    // 2. 默认启用的对话模型仅保留并确保包含：deepseek-ai/DeepSeek-V4-Flash 和 qwen/qwen3.8-27b
-    const currentChatModels = this.settings.chatModels || []
+    // 2. 默认启用的对话模型仅保留并确保包含：deepseek-ai/DeepSeek-V4-Flash
+    const currentChatModels = (this.settings.chatModels || []).filter((m) => {
+      if (m.providerType === 'groq' && m.id === 'qwen/qwen3.8-27b') return false
+      return true
+    })
     for (const defaultModel of DEFAULT_CHAT_MODELS) {
       const existing = currentChatModels.find(
         (m) => m.id === defaultModel.id || m.model === defaultModel.model,
@@ -241,12 +245,20 @@ export default class SmartComposerPlugin extends Plugin {
     }
     this.settings.chatModels = currentChatModels
 
-    // 3. 步数上限提至 5 步
+    // 确保默认对话模型设置
+    if (!this.settings.chatModelId) {
+      this.settings.chatModelId = DEFAULT_CHAT_MODEL_ID
+    }
+
+    // 3. 步数上限提至 5 步，服务层级默认为 eco (免费层模式)
     if (
       !this.settings.chatOptions.maxAutoIterations ||
       this.settings.chatOptions.maxAutoIterations < 5
     ) {
       this.settings.chatOptions.maxAutoIterations = 5
+    }
+    if (!this.settings.chatOptions.runtimeProfile) {
+      this.settings.chatOptions.runtimeProfile = 'eco'
     }
 
     await this.saveData(this.settings) // Save updated settings

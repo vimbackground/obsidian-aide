@@ -28,7 +28,7 @@ export default function UserMessageItem({
   onEditAndResubmit,
 }: UserMessageItemProps) {
   const { settings } = useSettings()
-  const language = settings.language ?? 'zh'
+  const language = settings.language ?? 'en'
 
   const textContent = useMemo(() => {
     if (!message.content) return ''
