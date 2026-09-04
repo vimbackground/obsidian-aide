@@ -1,0 +1,273 @@
+import { App, Notice, requestUrl } from 'obsidian'
+import { useState } from 'react'
+
+import { DEFAULT_PROVIDERS, PROVIDER_TYPES_INFO } from '../../../constants'
+import SmartComposerPlugin from '../../../main'
+import { RerankModel, rerankModelSchema } from '../../../settings/schema/setting.types'
+import { ObsidianButton } from '../../common/ObsidianButton'
+import { ObsidianDropdown } from '../../common/ObsidianDropdown'
+import { ObsidianSetting } from '../../common/ObsidianSetting'
+import { ObsidianTextInput } from '../../common/ObsidianTextInput'
+import { ObsidianToggle } from '../../common/ObsidianToggle'
+import { ReactModal } from '../../common/ReactModal'
+
+type AddRerankModelModalProps = {
+  plugin: SmartComposerPlugin
+  onClose: () => void
+}
+
+export class AddRerankModelModal extends ReactModal<AddRerankModelModalProps> {
+  constructor(app: App, plugin: SmartComposerPlugin) {
+    super({
+      app: app,
+      Component: AddRerankModelComponent,
+      props: { plugin },
+      options: {
+        title: '添加自定义重排序模型',
+      },
+    })
+  }
+}
+
+function isRerankModel(id: string): boolean {
+  const lower = id.toLowerCase()
+  const keywords = ['rerank', 'reranker', 'bge-rerank', 'bce-rerank', 'cohere-rerank']
+  return keywords.some((k) => lower.includes(k))
+}
+
+function AddRerankModelComponent({
+  plugin,
+  onClose,
+}: AddRerankModelModalProps) {
+  const [formData, setFormData] = useState<RerankModel>({
+    providerId: DEFAULT_PROVIDERS[0].id,
+    providerType: DEFAULT_PROVIDERS[0].type,
+    id: '',
+    model: '',
+  })
+  const [availableModels, setAvailableModels] = useState<string[] | null>(null)
+  const [showAllModels, setShowAllModels] = useState<boolean>(false)
+  const [isFetching, setIsFetching] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSubmit = async () => {
+    if (!formData.model || formData.model.trim() === '') {
+      new Notice('请先从下拉菜单中选择 Rerank 模型，或输入模型名称')
+      return
+    }
+
+    if (!formData.id || formData.id.trim() === '') {
+      formData.id = formData.model.trim()
+    }
+
+    const currentList = plugin.settings.rerankModels || []
+    if (currentList.some((m) => m.id === formData.id)) {
+      new Notice('已存在相同 ID 的 Rerank 模型，请修改模型标识 (ID)')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const validationResult = rerankModelSchema.safeParse(formData)
+      if (!validationResult.success) {
+        throw new Error(
+          validationResult.error.issues.map((v) => v.message).join('\n'),
+        )
+      }
+
+      await plugin.setSettings({
+        ...plugin.settings,
+        rerankModels: [...currentList, formData],
+      })
+
+      new Notice(`已成功添加 Rerank 模型 "${formData.id}"`)
+      onClose()
+    } catch (error) {
+      new Notice(
+        error instanceof Error ? error.message : '添加 Rerank 模型时发生未知错误',
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <>
+      <ObsidianSetting name="所属服务商 (Provider)" required>
+        <ObsidianDropdown
+          value={formData.providerId}
+          options={Object.fromEntries(
+            plugin.settings.providers.map((provider) => [
+              provider.id,
+              `${provider.id} (${PROVIDER_TYPES_INFO[provider.type]?.label ?? provider.type})`,
+            ]),
+          )}
+          onChange={(value: string) => {
+            const provider = plugin.settings.providers.find(
+              (p) => p.id === value,
+            )
+            if (!provider) {
+              new Notice(`未找到 ID 为 ${value} 的服务商`)
+              return
+            }
+            setAvailableModels(null)
+            setFormData((prev) => ({
+              ...prev,
+              providerId: value,
+              providerType: provider.type,
+              model: '',
+            }))
+          }}
+        />
+      </ObsidianSetting>
+
+      <ObsidianSetting
+        name="从服务商获取模型"
+        desc="点击按钮连接当前服务商，拉取线上可用模型列表"
+      >
+        <ObsidianButton
+          text={isFetching ? '正在拉取...' : '拉取在线可用模型 (Fetch)'}
+          disabled={isFetching}
+          onClick={async () => {
+            const provider = plugin.settings.providers.find(
+              (p) => p.id === formData.providerId,
+            )
+            if (!provider) return
+            let baseUrl = provider.baseUrl
+            if (!baseUrl) {
+              if (provider.type === 'openai') baseUrl = 'https://api.openai.com/v1'
+              else if (provider.type === 'deepseek')
+                baseUrl = 'https://api.deepseek.com/v1'
+              else if (provider.type === 'siliconflow')
+                baseUrl = 'https://api.siliconflow.cn/v1'
+              else if (provider.type === 'openrouter')
+                baseUrl = 'https://openrouter.ai/api/v1'
+              else if (provider.type === 'groq')
+                baseUrl = 'https://api.groq.com/openai/v1'
+              else if (provider.type === 'modelscope')
+                baseUrl = 'https://api-inference.modelscope.cn/v1'
+            }
+            if (!baseUrl || !provider.apiKey) {
+              new Notice('服务商缺少 Base URL 或 API Key，请先在服务商设置中填写')
+              return
+            }
+            setIsFetching(true)
+            try {
+              new Notice('正在从服务商拉取可用模型列表...')
+              const res = await requestUrl({
+                url: `${baseUrl.replace(/\/+$/, '')}/models`,
+                method: 'GET',
+                headers: { Authorization: `Bearer ${provider.apiKey}` },
+              })
+              const data = res.json
+              if (data && data.data && Array.isArray(data.data)) {
+                const models = data.data.map((m: any) => m.id).filter(Boolean)
+                setAvailableModels(models)
+                const detected = models.filter(isRerankModel)
+                if (detected.length > 0) {
+                  setShowAllModels(false)
+                  new Notice(
+                    `已自动识别并筛选出 ${detected.length} 个可用 Rerank 重排模型（服务商共有 ${models.length} 个模型）`,
+                  )
+                } else {
+                  setShowAllModels(true)
+                  new Notice(
+                    `未自动匹配到 Rerank 模型命名特征，已展示全部 ${models.length} 个模型供选择`,
+                  )
+                }
+              } else {
+                new Notice('未在返回数据中解析到可用模型列表')
+              }
+            } catch (e: any) {
+              new Notice(`拉取模型失败：${e?.message || '网络请求错误'}`)
+              console.error(e)
+            } finally {
+              setIsFetching(false)
+            }
+          }}
+        />
+      </ObsidianSetting>
+
+      {availableModels && availableModels.length > 0 && availableModels.some(isRerankModel) && (
+        <ObsidianSetting
+          name="只显示识别出的 Rerank 模型"
+          desc={`已智能筛选出 ${availableModels.filter(isRerankModel).length} 个重排模型。如需查看服务商所有 ${availableModels.length} 个模型，可关闭此开关。`}
+        >
+          <ObsidianToggle
+            value={!showAllModels}
+            onChange={(val: boolean) => setShowAllModels(!val)}
+          />
+        </ObsidianSetting>
+      )}
+
+      <ObsidianSetting 
+        name="模型名称 (Model)" 
+        desc={availableModels ? "请在下拉列表中鼠标点击选择一个模型" : "可直接手动输入，或点击上方按钮拉取在线模型"}
+        required
+      >
+        {availableModels && availableModels.length > 0 ? (
+          <ObsidianDropdown
+            value={formData.model}
+            options={{
+              '': '-- 请用鼠标选择一个 Rerank 模型 (Click to select) --',
+              ...Object.fromEntries(
+                (showAllModels
+                  ? availableModels
+                  : availableModels.filter(isRerankModel).length > 0
+                    ? availableModels.filter(isRerankModel)
+                    : availableModels
+                ).map((m) => [m, m]),
+              ),
+            }}
+            onChange={(value: string) =>
+              setFormData((prev) => ({
+                ...prev,
+                model: value,
+                id: prev.id && prev.id !== prev.model ? prev.id : value,
+              }))
+            }
+          />
+        ) : (
+          <ObsidianTextInput
+            value={formData.model}
+            placeholder="输入 Rerank 模型名称（如 BAAI/bge-reranker-v2-m3）"
+            onChange={(value: string) =>
+              setFormData((prev) => ({
+                ...prev,
+                model: value,
+                id: prev.id && prev.id !== prev.model ? prev.id : value,
+              }))
+            }
+          />
+        )}
+      </ObsidianSetting>
+
+      <ObsidianSetting
+        name="模型标识 (ID)"
+        desc="插件内部唯一标识符（默认自动与模型名称一致）"
+        required
+      >
+        <ObsidianTextInput
+          value={formData.id}
+          placeholder="模型 ID"
+          onChange={(value: string) =>
+            setFormData((prev) => ({
+              ...prev,
+              id: value,
+            }))
+          }
+        />
+      </ObsidianSetting>
+
+      <div className="aide-modal-button-container">
+        <ObsidianButton text="取消" onClick={onClose} />
+        <ObsidianButton
+          text={isSubmitting ? '正在添加...' : '添加重排序模型'}
+          cta={true}
+          disabled={isSubmitting}
+          onClick={handleSubmit}
+        />
+      </div>
+    </>
+  )
+}

@@ -1,0 +1,18 @@
+# 本地私有知识库与 AI 协作规范（仅本地开发保留，绝不推送到 GitHub）
+_System/
+AGENT.md
+scratch/
+meta.json
+
+# 根目录编译产物（保留 output/ 预编译发布包及 zip）
+/main.js
+*.map
+
+# 运行时缓存与本地配置
+node_modules/
+data.json
+.DS_Store
+.vscode/
+.idea/
+*.iml
+CLAUDE.md

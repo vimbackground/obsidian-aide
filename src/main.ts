@@ -1,0 +1,449 @@
+import { Editor, MarkdownView, Notice, Plugin } from 'obsidian'
+
+import { ChatView } from './ChatView'
+import { ChatProps } from './components/chat-view/Chat'
+import { InstallerUpdateRequiredModal } from './components/modals/InstallerUpdateRequiredModal'
+import {
+  CHAT_VIEW_TYPE,
+  DEFAULT_CHAT_MODELS,
+  DEFAULT_PROVIDERS,
+} from './constants'
+import { McpManager } from './core/mcp/mcpManager'
+import { RAGEngine } from './core/rag/ragEngine'
+import { DatabaseManager } from './database/DatabaseManager'
+import {
+  SmartComposerSettings,
+  smartComposerSettingsSchema,
+} from './settings/schema/setting.types'
+import { parseSmartComposerSettings } from './settings/schema/settings'
+import { SmartComposerSettingTab } from './settings/SettingTab'
+import { getMentionableBlockData } from './utils/obsidian'
+
+export default class SmartComposerPlugin extends Plugin {
+  settings: SmartComposerSettings
+  initialChatProps?: ChatProps // TODO: change this to use view state like ApplyView
+  settingsChangeListeners: ((newSettings: SmartComposerSettings) => void)[] = []
+  mcpManager: McpManager | null = null
+  dbManager: DatabaseManager | null = null
+  ragEngine: RAGEngine | null = null
+  private dbManagerInitPromise: Promise<DatabaseManager> | null = null
+  private ragEngineInitPromise: Promise<RAGEngine> | null = null
+  private timeoutIds: ReturnType<typeof setTimeout>[] = [] // Use ReturnType instead of number
+
+  async onload() {
+    await this.loadSettings()
+    await this.migrateLegacyDirectories()
+
+    this.registerView(CHAT_VIEW_TYPE, (leaf) => new ChatView(leaf, this))
+    // 兼容旧版视图标识，防止老用户标签页报错
+    this.registerView('smtcmp-chat-view', (leaf) => new ChatView(leaf, this))
+
+    // This creates an icon in the left ribbon.
+    this.addRibbonIcon('wand-sparkles', '打开 Aide 助手', () =>
+      this.openChatView(),
+    )
+
+    // This adds a simple command that can be triggered anywhere
+    this.addCommand({
+      id: 'open-new-chat',
+      name: '打开对话 (Open chat)',
+      callback: () => this.openChatView(true),
+    })
+
+    this.addCommand({
+      id: 'add-selection-to-chat',
+      name: '将选中内容添加到对话 (Add selection to chat)',
+      editorCallback: (editor: Editor, view: MarkdownView) => {
+        this.addSelectionToChat(editor, view)
+      },
+    })
+
+    this.addCommand({
+      id: 'rebuild-vault-index',
+      name: '重建整个知识库索引 (Rebuild entire vault index)',
+      callback: async () => {
+        const notice = new Notice('正在全量重建知识库索引...', 0)
+        try {
+          const ragEngine = await this.getRAGEngine()
+          await ragEngine.updateVaultIndex(
+            { reindexAll: true },
+            (queryProgress) => {
+              if (queryProgress.type === 'indexing') {
+                const { completedChunks, totalChunks } =
+                  queryProgress.indexProgress
+                notice.setMessage(
+                  `正在索引知识库文本块: ${completedChunks} / ${totalChunks}${
+                    queryProgress.indexProgress.waitingForRateLimit
+                      ? '\n(等待速率限制重置中...)'
+                      : ''
+                  }`,
+                )
+              }
+            },
+          )
+          notice.setMessage('知识库索引全量重建完成')
+        } catch (error) {
+          console.error(error)
+          notice.setMessage('知识库索引全量重建失败')
+        } finally {
+          this.registerTimeout(() => {
+            notice.hide()
+          }, 1000)
+        }
+      },
+    })
+
+    this.addCommand({
+      id: 'update-vault-index',
+      name: '更新修改文件的知识库索引 (Update index for modified files)',
+      callback: async () => {
+        const notice = new Notice('正在增量更新知识库索引...', 0)
+        try {
+          const ragEngine = await this.getRAGEngine()
+          await ragEngine.updateVaultIndex(
+            { reindexAll: false },
+            (queryProgress) => {
+              if (queryProgress.type === 'indexing') {
+                const { completedChunks, totalChunks } =
+                  queryProgress.indexProgress
+                notice.setMessage(
+                  `正在更新知识库文本块: ${completedChunks} / ${totalChunks}${
+                    queryProgress.indexProgress.waitingForRateLimit
+                      ? '\n(等待速率限制重置中...)'
+                      : ''
+                  }`,
+                )
+              }
+            },
+          )
+          notice.setMessage('知识库索引更新完毕')
+        } catch (error) {
+          console.error(error)
+          notice.setMessage('知识库索引更新失败')
+        } finally {
+          this.registerTimeout(() => {
+            notice.hide()
+          }, 1000)
+        }
+      },
+    })
+    
+    this.addSettingTab(new SmartComposerSettingTab(this.app, this))
+
+    // Set up background indexing listener
+    this.app.workspace.onLayoutReady(() => {
+      this.app.vault.on('modify', () => this.triggerBackgroundIndex())
+      this.app.vault.on('delete', () => this.triggerBackgroundIndex())
+      this.app.vault.on('rename', () => this.triggerBackgroundIndex())
+    })
+  }
+
+  private indexTimeout: ReturnType<typeof setTimeout> | null = null
+
+  private triggerBackgroundIndex() {
+    if (!this.settings.ragOptions.backgroundIndexing) return
+    
+    if (this.indexTimeout) {
+      clearTimeout(this.indexTimeout)
+    }
+    this.indexTimeout = setTimeout(async () => {
+      try {
+        const ragEngine = await this.getRAGEngine()
+        await ragEngine.updateVaultIndex({ reindexAll: false })
+      } catch (e) {
+        console.error('Background index failed', e)
+      }
+    }, 5000) // 5 second debounce
+  }
+
+  onunload() {
+    // clear all timers
+    this.timeoutIds.forEach((id) => clearTimeout(id))
+    this.timeoutIds = []
+
+    // RagEngine cleanup
+    this.ragEngine?.cleanup()
+    this.ragEngine = null
+
+    // Promise cleanup
+    this.dbManagerInitPromise = null
+    this.ragEngineInitPromise = null
+
+    // DatabaseManager cleanup
+    this.dbManager?.cleanup()
+    this.dbManager = null
+
+    // McpManager cleanup
+    this.mcpManager?.cleanup()
+    this.mcpManager = null
+  }
+
+  async loadSettings() {
+    this.settings = parseSmartComposerSettings(await this.loadData())
+
+    // 清理历史残留的假外部内置工具配置，并对真实外部服务做严格去重
+    const currentServers = this.settings.mcp?.servers || []
+    const seenIds = new Set<string>()
+    const deduplicatedServers = []
+    let hasChanges = false
+
+    for (const server of currentServers) {
+      if (!server || !server.id) continue
+      const lowerId = server.id.toLowerCase()
+      // 过滤旧版写入外部列表中的内置工具假配置
+      if (
+        lowerId.includes('bing-cn-search') ||
+        lowerId.includes('web-fetch') ||
+        lowerId.includes('weather-service') ||
+        lowerId.includes('arxiv-search') ||
+        lowerId.includes('time-service')
+      ) {
+        hasChanges = true
+        continue
+      }
+      if (!seenIds.has(server.id)) {
+        seenIds.add(server.id)
+        deduplicatedServers.push(server)
+      } else {
+        hasChanges = true
+      }
+    }
+
+    if (hasChanges || deduplicatedServers.length !== currentServers.length) {
+      this.settings.mcp.servers = deduplicatedServers
+    }
+
+    // 1. 服务商精简：仅保留 openai, deepseek, groq, siliconflow，过滤未填写 Key 的其余服务商
+    const allowedProviderTypes = new Set(['openai', 'deepseek', 'groq', 'siliconflow'])
+    const existingProviders = this.settings.providers || []
+    const filteredProviders = existingProviders.filter((p) => {
+      if (allowedProviderTypes.has(p.type)) return true
+      return Boolean(p.apiKey && p.apiKey.trim() !== '')
+    })
+    for (const defaultProvider of DEFAULT_PROVIDERS) {
+      if (!filteredProviders.some((p) => p.type === defaultProvider.type)) {
+        filteredProviders.push({ ...defaultProvider })
+      }
+    }
+    this.settings.providers = filteredProviders
+
+    // 2. 默认启用的对话模型仅保留并确保包含：deepseek-ai/DeepSeek-V4-Flash 和 qwen/qwen3.8-27b
+    const currentChatModels = this.settings.chatModels || []
+    for (const defaultModel of DEFAULT_CHAT_MODELS) {
+      const existing = currentChatModels.find(
+        (m) => m.id === defaultModel.id || m.model === defaultModel.model,
+      )
+      if (!existing) {
+        currentChatModels.push({ ...defaultModel })
+      } else {
+        existing.enable = true
+      }
+    }
+    this.settings.chatModels = currentChatModels
+
+    // 3. 步数上限提至 5 步
+    if (
+      !this.settings.chatOptions.maxAutoIterations ||
+      this.settings.chatOptions.maxAutoIterations < 5
+    ) {
+      this.settings.chatOptions.maxAutoIterations = 5
+    }
+
+    await this.saveData(this.settings) // Save updated settings
+  }
+
+  async setSettings(newSettings: SmartComposerSettings) {
+    const validationResult = smartComposerSettingsSchema.safeParse(newSettings)
+
+    if (!validationResult.success) {
+      new Notice(`Invalid settings:
+${validationResult.error.issues.map((v) => v.message).join('\n')}`)
+      return
+    }
+
+    this.settings = newSettings
+    await this.saveData(newSettings)
+    this.ragEngine?.setSettings(newSettings)
+    this.settingsChangeListeners.forEach((listener) => listener(newSettings))
+  }
+
+  addSettingsChangeListener(
+    listener: (newSettings: SmartComposerSettings) => void,
+  ) {
+    this.settingsChangeListeners.push(listener)
+    return () => {
+      this.settingsChangeListeners = this.settingsChangeListeners.filter(
+        (l) => l !== listener,
+      )
+    }
+  }
+
+  async openChatView(openNewChat = false) {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView)
+    const editor = view?.editor
+    if (!view || !editor) {
+      this.activateChatView(undefined, openNewChat)
+      return
+    }
+    const selectedBlockData = await getMentionableBlockData(editor, view)
+    this.activateChatView(
+      {
+        selectedBlock: selectedBlockData ?? undefined,
+      },
+      openNewChat,
+    )
+  }
+
+  async activateChatView(chatProps?: ChatProps, openNewChat = false) {
+    // chatProps is consumed in ChatView.tsx
+    this.initialChatProps = chatProps
+
+    const leaf = this.app.workspace.getLeavesOfType(CHAT_VIEW_TYPE)[0]
+
+    await (leaf ?? this.app.workspace.getRightLeaf(false))?.setViewState({
+      type: CHAT_VIEW_TYPE,
+      active: true,
+    })
+
+    if (openNewChat && leaf && leaf.view instanceof ChatView) {
+      leaf.view.openNewChat(chatProps?.selectedBlock)
+    }
+
+    this.app.workspace.revealLeaf(
+      this.app.workspace.getLeavesOfType(CHAT_VIEW_TYPE)[0],
+    )
+  }
+
+  async addSelectionToChat(editor: Editor, view: MarkdownView) {
+    const data = await getMentionableBlockData(editor, view)
+    if (!data) return
+
+    const leaves = this.app.workspace.getLeavesOfType(CHAT_VIEW_TYPE)
+    if (leaves.length === 0 || !(leaves[0].view instanceof ChatView)) {
+      await this.activateChatView({
+        selectedBlock: data,
+      })
+      return
+    }
+
+    // bring leaf to foreground (uncollapse sidebar if it's collapsed)
+    await this.app.workspace.revealLeaf(leaves[0])
+
+    const chatView = leaves[0].view
+    chatView.addSelectionToChat(data)
+    chatView.focusMessage()
+  }
+
+  async getDbManager(): Promise<DatabaseManager> {
+    if (this.dbManager) {
+      return this.dbManager
+    }
+
+    if (!this.dbManagerInitPromise) {
+      this.dbManagerInitPromise = (async () => {
+        try {
+          this.dbManager = await DatabaseManager.create(this.app)
+          return this.dbManager
+        } catch (error) {
+          this.dbManagerInitPromise = null
+          throw error
+        }
+      })()
+    }
+
+    return this.dbManagerInitPromise
+  }
+
+  async getRAGEngine(): Promise<RAGEngine> {
+    if (this.ragEngine) {
+      return this.ragEngine
+    }
+
+    if (!this.ragEngineInitPromise) {
+      this.ragEngineInitPromise = (async () => {
+        try {
+          const dbManager = await this.getDbManager()
+          this.ragEngine = new RAGEngine(
+            this.app,
+            this.settings,
+            dbManager.getVectorManager(),
+          )
+          return this.ragEngine
+        } catch (error) {
+          this.ragEngineInitPromise = null
+          throw error
+        }
+      })()
+    }
+
+    return this.ragEngineInitPromise
+  }
+
+  async getMcpManager(): Promise<McpManager> {
+    if (this.mcpManager) {
+      return this.mcpManager
+    }
+
+    try {
+      this.mcpManager = new McpManager({
+        settings: this.settings,
+        registerSettingsListener: (
+          listener: (settings: SmartComposerSettings) => void,
+        ) => this.addSettingsChangeListener(listener),
+      })
+      await this.mcpManager.initialize()
+      return this.mcpManager
+    } catch (error) {
+      this.mcpManager = null
+      throw error
+    }
+  }
+  private registerTimeout(callback: () => void, timeout: number): void {
+    const timeoutId = setTimeout(callback, timeout)
+    this.timeoutIds.push(timeoutId)
+  }
+
+  private async migrateLegacyDirectories(): Promise<void> {
+    try {
+      const adapter = this.app.vault.adapter
+      const legacyDir = '.smtcmp_json_db'
+      const newDir = '.aide'
+
+      if (await adapter.exists(legacyDir)) {
+        if (!(await adapter.exists(newDir))) {
+          await (adapter as any).rename(legacyDir, newDir)
+          console.log(`[Aide] Migrated legacy database directory "${legacyDir}" to "${newDir}"`)
+        }
+      }
+
+      if (!(await adapter.exists(newDir))) {
+        await adapter.mkdir(newDir)
+      }
+
+      // Migrate legacy root files
+      const legacyTar = '.smtcmp_vector_db.tar.gz'
+      const newTar = '.aide/vector_db.tar.gz'
+      if (await adapter.exists(legacyTar)) {
+        if (!(await adapter.exists(newTar))) {
+          await (adapter as any).rename(legacyTar, newTar)
+          console.log(`[Aide] Migrated legacy tar "${legacyTar}" to "${newTar}"`)
+        } else {
+          await adapter.remove(legacyTar)
+        }
+      }
+
+      const legacyJson = '.smtcmp_vectors.json'
+      const newJson = '.aide/vectors.json'
+      if (await adapter.exists(legacyJson)) {
+        if (!(await adapter.exists(newJson))) {
+          await (adapter as any).rename(legacyJson, newJson)
+          console.log(`[Aide] Migrated legacy vectors file "${legacyJson}" to "${newJson}"`)
+        } else {
+          await adapter.remove(legacyJson)
+        }
+      }
+    } catch (e) {
+      console.warn('[Aide] Failed to migrate legacy files to .aide:', e)
+    }
+  }
+}
