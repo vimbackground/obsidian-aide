@@ -56,7 +56,7 @@
 > 普通用户**强烈推荐直接使用预编译版本**，无需安装任何开发工具，30 秒即可在 Obsidian 中启用！
 
 ### 方式一：直接下载发布包（首选推荐）
-1. 在本仓库右侧的 [Releases 页面](../../releases) 中下载最新版的 **`obsidian-aide.zip`**（或从本仓库的 `output/obsidian-aide.zip` 直接获取）；
+1. 在本仓库右侧的 [Releases 页面](https://github.com/vimbackground/obsidian-aide/releases) 中下载最新版的 **`obsidian-aide.zip`**；
 2. 解压压缩包，确认里面包含三个文件：
    - `main.js`
    - `manifest.json`
@@ -103,26 +103,70 @@
 
 ---
 
-## 🛠️ 开发者源码构建 (For Developers)
+## 🛠️ 开发者源码构建与自动化发布 (For Developers)
 
 <details>
-<summary><b>点击展开开发者编译说明（普通用户可忽略）</b></summary>
+<summary><b>点击展开开发者编译与发布指引（普通用户可忽略）</b></summary>
 
-如果您希望自行从源码修改或编译本插件，请按以下步骤操作：
-
+### 1. 源码克隆与环境准备
 ```bash
 # 1. 克隆代码仓库
-git clone https://github.com/your-username/obsidian-aide.git
+git clone https://github.com/vimbackground/obsidian-aide.git
 cd obsidian-aide
 
 # 2. 安装工程依赖
 npm install
-
-# 3. 执行生产环境构建
-npm run build
 ```
 
-构建完成后，编译产物将自动输出至 `output/obsidian-aide/` 目录中。
+### 2. 本地开发与构建命令
+```bash
+# 本地热重载开发监听
+npm run dev
+
+# 生产环境编译构建（输出至 output/obsidian-aide/）
+npm run build
+
+# 打包 output/obsidian-aide 产物为 output/obsidian-aide.zip
+npm run pack:zip
+
+# 一键执行构建 + zip 压缩打包
+npm run build:all
+
+# 代码检查与测试
+npm run type:check
+npm run lint:check
+npm test
+```
+
+### 3. 版本升级与 GitHub 自动化 Release 流程
+本项目已配置 GitHub Actions 自动化流水线（`.github/workflows/release.yml`）。当您需要发布新版本时，仅需遵循以下三步：
+
+1. **升级版本号**（自动同步 `package.json`、`manifest.json`、`versions.json` 等）：
+   ```bash
+   npm run bump:patch   # 小更新 (0.8.3 -> 0.8.4)
+   # 或 npm run bump:minor (0.8.3 -> 0.9.0)
+   # 或 npm run bump:major (0.8.3 -> 1.0.0)
+   ```
+2. **在 `RELEASE_NOTES.md` 顶部记录新版本的更新内容**：
+   ```markdown
+   ## v0.8.4
+   - 修复了 xxx 问题；
+   - 优化了 xxx 体验。
+   ```
+3. **提交代码并推送版本标签（Tag）**：
+   ```bash
+   git add .
+   git commit -m "chore: release v0.8.4"
+   git tag v0.8.4
+   git push origin main --tags
+   ```
+
+**云端自动完成**：
+- GitHub Actions 检测到 `v*` 标签推送后，将自动检出代码、编译构建插件；
+- 自动打包生成最新的 **`obsidian-aide.zip`**；
+- 自动从 `RELEASE_NOTES.md` 中截取对应的版本更新说明；
+- 自动在 GitHub Releases 中创建该版本的正式发布页面，并挂载 `obsidian-aide.zip`、`main.js`、`manifest.json`、`styles.css` 全部附件！
+
 </details>
 
 ---
