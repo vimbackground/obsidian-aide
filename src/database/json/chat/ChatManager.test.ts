@@ -63,10 +63,21 @@ describe('ChatManager', () => {
         schemaVersion: CHAT_SCHEMA_VERSION,
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fileName = (chatManager as any).generateFileName(chat)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const metadata = (chatManager as any).parseFileName(fileName)
+      const fileName = (
+        chatManager as unknown as { generateFileName: (c: unknown) => string }
+      ).generateFileName(chat)
+      const metadata = (
+        chatManager as unknown as {
+          parseFileName: (
+            f: string,
+          ) => {
+            id: string
+            title: string
+            updatedAt: number
+            schemaVersion: number
+          } | null
+        }
+      ).parseFileName(fileName)
 
       expect(metadata).not.toBeNull()
       if (metadata) {

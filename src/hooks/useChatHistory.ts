@@ -50,7 +50,7 @@ export function useChatHistory(): UseChatHistory {
 
   useEffect(() => {
     void fetchChatList()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Fetch chat list on initial mount only
   }, [])
 
   const extractArticlePathFromMessages = (

@@ -1,15 +1,12 @@
 import { SmartComposerSettings } from '../../settings/schema/setting.types'
 import {
-  McpServerConfig,
   McpServerState,
-  McpServerStatus,
   McpTool,
 } from '../../types/mcp.types'
 import {
   ToolCallResponse,
   ToolCallResponseStatus,
 } from '../../types/tool-call.types'
-
 import {
   executeBuiltinTool,
   getBuiltinToolsList,
@@ -128,8 +125,8 @@ export class McpManager {
   public async callTool({
     name,
     args,
-    id,
-    signal,
+    id: _id,
+    signal: _signal,
   }: {
     name: string
     args?: Record<string, unknown> | string | undefined

@@ -1,4 +1,5 @@
 import { App } from 'obsidian'
+
 import { VectorManager } from './modules/vector/VectorManager'
 
 export class DatabaseManager {

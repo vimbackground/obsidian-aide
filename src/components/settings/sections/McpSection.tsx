@@ -22,40 +22,40 @@ const BUILTIN_TOOLS_CONFIG: BuiltinToolInfo[] = [
     key: 'bing_search',
     titleZh: '国内必应网络搜索',
     titleEn: 'Bing CN Web Search',
-    descZh: '直连微软 Bing 国内节点，检索最新事实、资讯与新闻，免翻墙、免 API 密钥。',
-    descEn: 'Search current web facts and news via Bing China node without proxy or API key.',
+    descZh: '直连微软 Bing 国内节点，免翻墙检索最新网络资讯。',
+    descEn: 'Search current web facts and news via Bing China node.',
   },
   {
     key: 'web_fetch',
     titleZh: '网页正文抓取提取',
     titleEn: 'Web Page Content Fetch',
-    descZh: '抓取任意网页 URL 并提取为干净的 Markdown 文本供 AI 研读与总结。',
-    descEn: 'Fetch any web page URL and convert content into clean Markdown for AI reading.',
+    descZh: '抓取网页正文并转为纯净 Markdown 供 AI 研读。',
+    descEn: 'Fetch web page URL and extract clean Markdown content.',
   },
   {
     key: 'weather_service',
     titleZh: '全球实时天气预报',
     titleEn: 'Global Weather Forecast',
-    descZh: '基于 Open-Meteo 全球开放接口，查询中国及全球任意城市的当前气象与未来预报。',
-    descEn: 'Real-time and 3-day weather forecast for any city via Open-Meteo open API.',
+    descZh: '查询全球各城市实时气象与未来天气预报。',
+    descEn: 'Query real-time and forecasted weather for global cities.',
   },
   {
     key: 'arxiv_search',
     titleZh: 'arXiv 学术论文检索',
     titleEn: 'arXiv Academic Search',
-    descZh: '直连全球最大开放文献库，检索人工智能、物理、数学、计算机等前沿论文与摘要。',
-    descEn: 'Search scientific papers and abstracts from arXiv open research repository.',
+    descZh: '检索 arXiv 论文库获取人工智能与各学科前沿文献。',
+    descEn: 'Search arXiv academic papers and abstracts.',
   },
   {
     key: 'current_time',
     titleZh: '当前精准时间与时区',
     titleEn: 'Accurate Time & Timezone',
-    descZh: '获取当前系统的精确时间、日期、星期几以及所在时区，避免模型时间认知错乱。',
-    descEn: 'Get current accurate date, day, 24h time and timezone for precise time awareness.',
+    descZh: '获取当前系统的精确时间、日期与所在时区。',
+    descEn: 'Get current accurate system time, date, and timezone.',
   },
 ]
 
-export function McpSection({ app, plugin }: McpSectionProps) {
+export function McpSection({ app: _app, plugin: _plugin }: McpSectionProps) {
   const { settings, setSettings } = useSettings()
   const language = settings.language ?? 'en'
   const isZh = language === 'zh'
@@ -89,8 +89,8 @@ export function McpSection({ app, plugin }: McpSectionProps) {
         </div>
         <div className="aide-settings-desc">
           {isZh
-            ? '由插件底层原生驱动，无需安装 Node.js 环境或配置外部进程，在桌面端和移动端（iOS / Android）均可秒开使用。'
-            : 'Powered natively by the plugin engine. No Node.js required, works instantly on desktop and mobile.'}
+            ? '插件原生驱动，无需 Node.js 环境，桌面端与移动端开箱即用。'
+            : 'Plugin native engine. Zero Node.js setup, ready across desktop and mobile.'}
         </div>
 
         <div className="aide-settings-table-container">

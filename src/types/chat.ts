@@ -1,12 +1,12 @@
 import { SerializedEditorState } from 'lexical'
 
-import { SelectEmbedding } from './vector.types'
 
 import { ChatModel } from './chat-model.types'
 import { ContentPart, RequestProviderMetadata } from './llm/request'
 import { Annotation, ResponseUsage } from './llm/response'
 import { Mentionable, SerializedMentionable } from './mentionable'
 import { ToolCallRequest, ToolCallResponse } from './tool-call.types'
+import { SelectEmbedding } from './vector.types'
 
 export type ChatUserMessage = {
   role: 'user'

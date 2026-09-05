@@ -23,12 +23,13 @@ type ProviderFormComponentProps = {
 
 export class AddProviderModal extends ReactModal<ProviderFormComponentProps> {
   constructor(app: App, plugin: SmartComposerPlugin) {
+    const isZh = plugin.settings.language === 'zh'
     super({
       app: app,
       Component: ProviderFormComponent,
       props: { plugin, provider: null },
       options: {
-        title: '添加自定义服务商',
+        title: isZh ? '添加自定义服务商' : 'Add Custom Provider',
       },
     })
   }
@@ -36,12 +37,13 @@ export class AddProviderModal extends ReactModal<ProviderFormComponentProps> {
 
 export class EditProviderModal extends ReactModal<ProviderFormComponentProps> {
   constructor(app: App, plugin: SmartComposerPlugin, provider: LLMProvider) {
+    const isZh = plugin.settings.language === 'zh'
     super({
       app: app,
       Component: ProviderFormComponent,
       props: { plugin, provider },
       options: {
-        title: `编辑服务商: ${provider.id}`,
+        title: isZh ? `编辑服务商: ${provider.id}` : `Edit Provider: ${provider.id}`,
       },
     })
   }
@@ -101,69 +103,116 @@ function ProviderFormComponent({
   const [isTesting, setIsTesting] = useState(false)
 
   const handleTestKey = async () => {
-    let baseUrl = formData.baseUrl?.trim()
-    const apiKey = formData.apiKey?.trim()
-
-    if (!baseUrl) {
-      if (formData.type === 'openai') baseUrl = 'https://api.openai.com/v1'
-      else if (formData.type === 'deepseek') baseUrl = 'https://api.deepseek.com/v1'
-      else if (formData.type === 'siliconflow') baseUrl = 'https://api.siliconflow.cn/v1'
-      else if (formData.type === 'openrouter') baseUrl = 'https://openrouter.ai/api/v1'
-      else if (formData.type === 'groq') baseUrl = 'https://api.groq.com/openai/v1'
-      else if (formData.type === 'modelscope') baseUrl = 'https://api-inference.modelscope.cn/v1'
-      else if (formData.type === 'gemini') baseUrl = 'https://generativelanguage.googleapis.com/v1beta'
-    }
-
-    if (!apiKey && providerTypeInfo.requireApiKey) {
-      new Notice('请输入 API Key 后再进行测试')
-      return
-    }
-
-    setIsTesting(true)
-    new Notice('正在测试 API Key 连接...')
-
+    const isZh = plugin.settings.language === 'zh'
     try {
+      setIsTesting(true)
+      new Notice(
+        isZh
+          ? '正在测试连接有效性，请稍候...'
+          : 'Testing connection validity, please wait...',
+      )
+
+      let baseUrl = formData.baseUrl
+      if (!baseUrl) {
+        if (formData.type === 'openai') baseUrl = 'https://api.openai.com/v1'
+        else if (formData.type === 'deepseek')
+          baseUrl = 'https://api.deepseek.com/v1'
+        else if (formData.type === 'siliconflow')
+          baseUrl = 'https://api.siliconflow.cn/v1'
+        else if (formData.type === 'openrouter')
+          baseUrl = 'https://openrouter.ai/api/v1'
+        else if (formData.type === 'groq')
+          baseUrl = 'https://api.groq.com/openai/v1'
+        else if (formData.type === 'modelscope')
+          baseUrl = 'https://api-inference.modelscope.cn/v1'
+        else if (formData.type === 'gemini')
+          baseUrl = 'https://generativelanguage.googleapis.com/v1beta'
+      }
+
       if (formData.type === 'gemini') {
+        const testUrl = `${baseUrl}/models?key=${encodeURIComponent(formData.apiKey || '')}`
         const res = await requestUrl({
-          url: `${baseUrl}/models?key=${apiKey}`,
+          url: testUrl,
           method: 'GET',
         })
         if (res.status === 200) {
-          new Notice('✅ 测试成功！API Key 有效且连接正常。')
+          new Notice(
+            isZh
+              ? '✅ 测试成功！API Key 有效且服务商响应正常。'
+              : '✅ Test succeeded! API key is valid and provider responded normally.',
+          )
         } else {
-          new Notice(`❌ 测试失败：HTTP 状态码 ${res.status}`)
+          new Notice(
+            isZh
+              ? `❌ 测试失败：状态码 ${String(res.status)}`
+              : `❌ Test failed: Status code ${String(res.status)}`,
+          )
         }
       } else {
         if (!baseUrl) {
-          new Notice('请输入 Base URL 后再进行测试')
-          setIsTesting(false)
+          new Notice(
+            isZh
+              ? '❌ 测试失败：未指定 Base URL，无法测试'
+              : '❌ Test failed: Base URL is required to test connectivity',
+          )
           return
         }
-        const cleanBase = baseUrl.replace(/\/+$/, '')
+
+        const normalizedBaseUrl = baseUrl.replace(/\/+$/, '')
+        const testUrl = `${normalizedBaseUrl}/models`
+
+        const headers: Record<string, string> = {}
+        if (formData.apiKey) {
+          headers['Authorization'] = `Bearer ${formData.apiKey}`
+        }
+
         const res = await requestUrl({
-          url: `${cleanBase}/models`,
+          url: testUrl,
           method: 'GET',
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-          },
+          headers,
         })
+
         if (res.status === 200) {
-          new Notice('✅ 测试成功！API Key 有效且服务商响应正常。')
+          new Notice(
+            isZh
+              ? '✅ 测试成功！API Key 有效且服务商响应正常。'
+              : '✅ Test succeeded! API key is valid and provider responded normally.',
+          )
         } else {
-          new Notice(`❌ 测试失败：状态码 ${res.status}`)
+          new Notice(
+            isZh
+              ? `❌ 测试失败：状态码 ${String(res.status)}`
+              : `❌ Test failed: Status code ${String(res.status)}`,
+          )
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('API key test error:', error)
-      const msg = error?.message || String(error)
+      const msg = error instanceof Error ? error.message : String(error)
       if (msg.includes('401') || msg.includes('Unauthorized')) {
-        new Notice('❌ 测试失败：API Key 无效或未授权 (401 Unauthorized)')
+        new Notice(
+          isZh
+            ? '❌ 测试失败：API Key 无效或未授权 (401 Unauthorized)'
+            : '❌ Test failed: API Key is invalid or unauthorized (401 Unauthorized)',
+        )
       } else if (msg.includes('403') || msg.includes('Forbidden')) {
-        new Notice('❌ 测试失败：访问被拒绝 (403 Forbidden)')
+        new Notice(
+          isZh
+            ? '❌ 测试失败：访问被拒绝 (403 Forbidden)'
+            : '❌ Test failed: Access forbidden (403 Forbidden)',
+        )
       } else if (msg.includes('404')) {
-        new Notice('❌ 测试失败：接口路径不存在 (404 Not Found)，请检查 Base URL')
+        new Notice(
+          isZh
+            ? '❌ 测试失败：接口路径不存在 (404 Not Found)，请检查 Base URL'
+            : '❌ Test failed: Endpoint not found (404 Not Found), please check Base URL',
+        )
       } else {
-        new Notice(`❌ 测试失败：网络连接错误或端点不可达 (${msg})`)
+        new Notice(
+          isZh
+            ? `❌ 测试失败：网络连接错误或端点不可达 (${msg})`
+            : `❌ Test failed: Network error or endpoint unreachable (${msg})`,
+        )
       }
     } finally {
       setIsTesting(false)
@@ -171,6 +220,7 @@ function ProviderFormComponent({
   }
 
   const handleSubmit = async () => {
+    const isZh = plugin.settings.language === 'zh'
     if (provider) {
       const newProviders = [...plugin.settings.providers]
       const currentProviderIndex = newProviders.findIndex(
@@ -178,7 +228,9 @@ function ProviderFormComponent({
       )
 
       if (currentProviderIndex === -1) {
-        new Notice(`未找到此 ID 的服务商`)
+        new Notice(
+          isZh ? `未找到此 ID 的服务商` : `Provider not found for this ID`,
+        )
         return
       }
 
@@ -202,7 +254,11 @@ function ProviderFormComponent({
       if (
         plugin.settings.providers.some((p: LLMProvider) => p.id === formData.id)
       ) {
-        new Notice('已存在相同 ID 的服务商，请更换一个 ID')
+        new Notice(
+          isZh
+            ? '已存在相同 ID 的服务商，请更换一个 ID'
+            : 'A provider with this ID already exists, please choose another ID',
+        )
         return
       }
 
@@ -224,23 +280,24 @@ function ProviderFormComponent({
   }
 
   const providerTypeInfo = PROVIDER_TYPES_INFO[formData.type]
+  const isZh = plugin.settings.language === 'zh'
 
   return (
     <>
       {!provider && (
         <>
           <ObsidianSetting
-            name={plugin.settings.language === 'en' ? 'Provider ID' : '服务商标识'}
+            name={isZh ? '服务商标识' : 'Provider ID'}
             desc={
-              plugin.settings.language === 'en'
-                ? 'Unique identifier for internal reference in settings.'
-                : '用于在设置中标识该服务商的唯一代号（仅供插件内部引用）。'
+              isZh
+                ? '用于在设置中标识该服务商的唯一代号（仅供插件内部引用）。'
+                : 'Unique identifier for internal reference in settings.'
             }
             required
           >
             <ObsidianTextInput
               value={formData.id}
-              placeholder={plugin.settings.language === 'en' ? 'e.g. my-custom-provider' : '例如 my-custom-provider'}
+              placeholder={isZh ? '例如 my-custom-provider' : 'e.g. my-custom-provider'}
               onChange={(value: string) =>
                 setFormData((prev) => ({ ...prev, id: value }))
               }
@@ -248,7 +305,7 @@ function ProviderFormComponent({
           </ObsidianSetting>
 
           <ObsidianSetting
-            name={plugin.settings.language === 'en' ? 'Provider Type' : '服务商类型'}
+            name={isZh ? '服务商类型' : 'Provider Type'}
             required
           >
             <ObsidianDropdown
@@ -259,7 +316,7 @@ function ProviderFormComponent({
                     ([key]) =>
                       !PLAN_PROVIDER_TYPES.includes(key as LLMProviderType),
                   )
-                  .map(([key, info]) => [key, info.label]),
+                  .map(([key, info]) => [key, isZh ? info.labelZh : info.label]),
               )}
               onChange={(value: string) =>
                 setFormData(
@@ -351,8 +408,14 @@ function ProviderFormComponent({
       {providerTypeInfo.additionalSettings.map((setting) => (
         <ObsidianSetting
           key={setting.key}
-          name={setting.label}
-          desc={'description' in setting ? setting.description : undefined}
+          name={isZh && setting.labelZh ? setting.labelZh : setting.label}
+          desc={
+            isZh && 'descriptionZh' in setting && setting.descriptionZh
+              ? setting.descriptionZh
+              : 'description' in setting
+                ? setting.description
+                : undefined
+          }
           required={setting.required}
         >
           {setting.type === 'toggle' ? (
@@ -382,7 +445,11 @@ function ProviderFormComponent({
                   setting.key
                 ] ?? ''
               }
-              placeholder={setting.placeholder}
+              placeholder={
+                isZh && setting.placeholderZh
+                  ? setting.placeholderZh
+                  : setting.placeholder
+              }
               onChange={(value: string) =>
                 setFormData(
                   (prev) =>
@@ -402,11 +469,18 @@ function ProviderFormComponent({
 
       <ObsidianSetting>
         <ObsidianButton
-          text={provider ? '保存 (Save)' : '添加 (Add)'}
+          text={
+            provider
+              ? isZh ? '保存' : 'Save'
+              : isZh ? '添加' : 'Add'
+          }
           onClick={handleSubmit}
           cta
         />
-        <ObsidianButton text="取消 (Cancel)" onClick={onClose} />
+        <ObsidianButton
+          text={isZh ? '取消' : 'Cancel'}
+          onClick={onClose}
+        />
       </ObsidianSetting>
     </>
   )

@@ -5,6 +5,7 @@ import SmartComposerPlugin from '../../../main'
 import { smartComposerSettingsSchema } from '../../../settings/schema/setting.types'
 import { useI18n } from '../../../utils/i18n'
 import { ObsidianButton } from '../../common/ObsidianButton'
+import { ObsidianDropdown } from '../../common/ObsidianDropdown'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
 import { ConfirmModal } from '../../modals/ConfirmModal'
 
@@ -39,15 +40,20 @@ export function EtcSection({ app }: EtcSectionProps) {
         name={t('settings.language')}
         desc={t('settings.languageDesc')}
       >
-        <select 
-          value={settings.language || 'en'} 
-          onChange={(e) => setSettings({ ...settings, language: e.target.value as any })}
-          className="dropdown"
-        >
-          <option value="zh">中文 (简体)</option>
-          <option value="en">English</option>
-          <option value="auto">Auto (跟随系统)</option>
-        </select>
+        <ObsidianDropdown
+          value={settings.language || 'en'}
+          options={{
+            zh: '中文 (简体)',
+            en: 'English',
+            auto: 'Auto (跟随系统)',
+          }}
+          onChange={async (value) => {
+            await setSettings({
+              ...settings,
+              language: value as any,
+            })
+          }}
+        />
       </ObsidianSetting>
 
       <ObsidianSetting

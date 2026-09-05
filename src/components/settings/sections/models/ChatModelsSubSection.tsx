@@ -2,7 +2,6 @@ import { Edit, Settings, Trash2 } from 'lucide-react'
 import { App, Notice } from 'obsidian'
 import { ObsidianToggle } from 'src/components/common/ObsidianToggle'
 
-import { DEFAULT_CHAT_MODELS } from '../../../../constants'
 import { useSettings } from '../../../../contexts/settings-context'
 import SmartComposerPlugin from '../../../../main'
 import { useI18n } from '../../../../utils/i18n'

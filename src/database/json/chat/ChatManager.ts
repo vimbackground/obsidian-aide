@@ -21,19 +21,11 @@ export class ChatManager extends AbstractJsonRepository<
 
   protected generateFileName(chat: ChatConversation): string {
     // Format: v{schemaVersion}_{title}_{updatedAt}_{id}.json
-    // Sanitize illegal characters and limit encoded title length to avoid ENAMETOOLONG on Windows
-    const clean = (chat.title || 'chat')
-      .replace(/[\\/:*?"<>|\r\n\t]/g, ' ')
-      .trim() || 'chat'
-    let truncated = clean
-    while (
-      truncated.length > 0 &&
-      encodeURIComponent(truncated).replace(/\*/g, '%2A').length > 150
-    ) {
-      truncated = truncated.slice(0, -1)
+    let title = chat.title
+    if (encodeURIComponent(title).length > 180) {
+      title = title.slice(0, 50)
     }
-    if (!truncated) truncated = 'chat'
-    const encodedTitle = encodeURIComponent(truncated).replace(/\*/g, '%2A')
+    const encodedTitle = encodeURIComponent(title).replace(/\*/g, '%2A')
     return `v${chat.schemaVersion}_${encodedTitle}_${chat.updatedAt}_${chat.id}.json`
   }
 

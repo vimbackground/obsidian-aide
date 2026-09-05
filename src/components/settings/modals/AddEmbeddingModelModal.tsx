@@ -225,27 +225,30 @@ function AddEmbeddingModelComponent({
                 method: 'GET',
                 headers: { Authorization: `Bearer ${provider.apiKey}` },
               })
-              const data = res.json
-              if (data && data.data && Array.isArray(data.data)) {
-                const models = data.data.map((m: any) => m.id).filter(Boolean)
+              const data = res.json as { data?: Array<{ id?: string }> } | undefined
+              if (data && Array.isArray(data.data)) {
+                const models = data.data
+                  .map((m) => m.id)
+                  .filter((id): id is string => Boolean(id))
                 setAvailableModels(models)
                 const detected = models.filter(isEmbeddingModel)
                 if (detected.length > 0) {
                   setShowAllModels(false)
                   new Notice(
-                    `已自动识别并筛选出 ${detected.length} 个可用嵌入模型（服务商共有 ${models.length} 个模型）`,
+                    `已自动识别并筛选出 ${String(detected.length)} 个可用嵌入模型（服务商共有 ${String(models.length)} 个模型）`,
                   )
                 } else {
                   setShowAllModels(true)
                   new Notice(
-                    `未自动匹配到嵌入模型命名特征，已展示全部 ${models.length} 个模型供选择`,
+                    `未自动匹配到嵌入模型命名特征，已展示全部 ${String(models.length)} 个模型供选择`,
                   )
                 }
               } else {
                 new Notice('未在返回数据中解析到可用模型列表')
               }
-            } catch (e: any) {
-              new Notice(`拉取模型失败：${e?.message || '网络请求错误'}`)
+            } catch (e: unknown) {
+              const errMsg = e instanceof Error ? e.message : '网络请求错误'
+              new Notice(`拉取模型失败：${errMsg}`)
               console.error(e)
             } finally {
               setIsFetching(false)

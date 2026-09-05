@@ -6,11 +6,12 @@ import {
   DEFAULT_PROVIDERS,
   DEFAULT_SYSTEM_PROMPT,
 } from '../../constants'
+
+import { SETTINGS_SCHEMA_VERSION } from './migrations'
 import {
   DEFAULT_BUILTIN_TOOLS,
   DEFAULT_RERANK_MODELS,
 } from './setting.types'
-import { SETTINGS_SCHEMA_VERSION } from './migrations'
 import { parseSmartComposerSettings } from './settings'
 
 describe('parseSmartComposerSettings', () => {
@@ -37,7 +38,7 @@ describe('parseSmartComposerSettings', () => {
         minSimilarity: 0.0,
         limit: 10,
         filterMode: 'blacklist',
-        excludePatterns: ['.obsidian', '.aider', '.aide', '.trash', '.git'],
+        excludePatterns: ['.aider', '.aide', '.trash', '.git'],
         includePatterns: [],
         backgroundIndexing: false,
         rerank: {

@@ -20,7 +20,7 @@ const stripStainlessHeaders = (headers: Headers | Record<string, string>) => {
   const headerMap = headers as Record<string, string>
   Object.keys(headerMap).forEach((key) => {
     if (key.startsWith('x-stainless')) {
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- Delete custom dynamic header keys starting with x-stainless
       delete headerMap[key]
     }
   })

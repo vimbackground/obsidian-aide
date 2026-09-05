@@ -1,3 +1,77 @@
+# Release Notes: v0.13.2 - Template Modals Blank Bugfix & Stability / 模板弹窗空白修复与稳定性优化
+
+## 🌐 English
+- **Fix Template Modals Blank/Crash**: Resolved an issue where opening the template selection modal from the chat input or clicking "Add/Edit Prompt Template" in Settings would render a completely blank modal due to missing `SettingsProvider` context in React modals.
+- **Resilient Multi-Language Fallback**: Hardened `useI18n()` hook with a safe fallback mechanism to prevent runtime crashes when rendered outside the global settings context.
+- **Robust Template Loading**: Implemented interval polling retry logic when loading existing template nodes into the Lexical editor during template editing.
+- **Version Bump**: Updated to `0.13.2`.
+
+## 🇨🇳 中文说明
+- **彻底修复模板相关弹窗内容空白崩溃问题**：修复了在前台聊天输入框点击“提示词模板”图标、以及在后台设置中点击“添加提示模板”或“编辑”已有模板时，因 React 模态框缺失 `SettingsProvider` 导致 `useI18n` 抛出未捕获异常并引起白屏的缺陷。
+- **国际化多语言容错与安全降级**：强化 `useI18n()` 钩子，增加安全 Context 查询与默认语种降级，杜绝任何独立组件或弹窗因语种上下文未就绪而导致崩溃。
+- **模板编辑加载时序增强**：在编辑已保存模板时，增加 Lexical 编辑器节点挂载状态的轮询重试机制，确保复杂模板内容 100% 稳定呈现。
+- **版本更新**：版本号升级为 `0.13.2`。
+
+---
+
+# Release Notes: v0.13.0 - Obsidian Aider Official Release / 正式发布
+
+## 🌐 English
+- **AI-Powered One-Click Chat Title Generation**: Added a dedicated title generation button (`Sparkles` icon) in the chat header. The active LLM automatically synthesizes a concise, high-signal conversation title (≤12 characters) from the first and last message context.
+- **Obsidian Scenario Preset Prompt Templates**: Built-in 10 curated dual-language prompt templates tailored to Obsidian PKM workflows (Atomic Note Breakdown, Wikilink Discovery, Knowledge Review Weekly, Meeting Minutes Extraction, MOC Outline, Academic Paper Study, Feynman Technique Explanation, Markdown Polishing, Devil's Advocate Critique, Action Plan Checklist). Automatically seeded on startup without overwriting user customizations.
+- **Chat Layout & Quick Access Redesign**:
+  - Repositioned the language switch button right beside the "Chat" title on the top-left for direct visibility.
+  - Placed a dedicated "Prompt Templates" modal trigger button (`Book` icon) right between the "New Chat" and "Model Select" controls below the message input box.
+  - Streamlined header controls: top-right now cleanly clusters AI Title Generation, Current Article Chats, and All Chat History.
+- **RAG Folder Selection Hierarchical Tree Visualization**: Both RAG inclusion (whitelist) and exclusion (blacklist) folder dropdowns now visually display directory depth with tree indentation symbols (`└─ 📁 Folder (Path)`), eliminating ambiguity when managing deeply nested folders.
+- **Strict Single-Language i18n & UI Cleanups**:
+  - Model Providers and Prompt Templates configuration panels now display pure Chinese under Chinese locale and pure English under English locale, completely removing mixed-language slashes and labels.
+  - "Other Settings" display language dropdown repositioned to the right of the setting label following Obsidian native setting layout standards.
+  - Shortened and streamlined descriptions for built-in native tools (Bing Web Search, Web Fetch, Weather, arXiv, System Time).
+- **Default Recommended Model Modernization**: Updated default chat model to SiliconFlow's `Qwen/Qwen3.5-4B`, and removed deprecated `deepseek-ai/DeepSeek-V4-Flash`.
+- **Packaging Compatibility**: Enhanced packaging script with dual `pwsh` and `powershell` cross-compatibility for seamless bundle packaging.
+- **Version Bump**: Updated to version `0.13.0`.
+
+## 🇨🇳 中文说明
+- **大模型一键智能生成会话标题**：对话顶栏新增 AI 标题按钮（`Sparkles` 图标），调用当前激活的大模型基于首尾代表性上下文快速总结精准标题（≤12个字），告别千篇一律的手动命名。
+- **内置 10 条 Obsidian 经典场景提示词模板**：针对双链笔记和知识管理深度定制 10 大高频模板（原子笔记拆解、双链洞察推荐、知识回溯周报、会议纪要精炼、MOC 大纲架构、学术论文研读、费曼模型讲解、润色排版优化、反方视角质询、行动计划清单），支持中英双语并在首次启动时安全自动注入。
+- **前台界面与操作入口优化重构**：
+  - 聊天顶栏左侧将语言切换按钮移至“对话 (Chat)”标题右侧紧邻展示，状态一目了然。
+  - 聊天输入框下方控制栏在“新建会话”与“模型选择”之间新增“提示词模板”快捷入口按钮（`Book` 图标），调用更顺手。
+  - 对话顶栏精简化重构：左侧去除多余的新建与模板按钮，右侧规整排布 AI 标题生成、当前文章历史与全库历史入口。
+- **RAG 黑白名单目录树状层级呈现**：后台白名单与黑名单文件夹选择下拉框支持全库层级深度解析，采用树形分支符号（`└─ 📁 文件夹名 (路径)`）直观展示嵌套结构，彻底杜绝多层级重名文件夹误选。
+- **纯净单语言国际化与界面排版规范**：
+  - 模型服务商配置与提示词模板管理彻底消除中英文混杂与括号斜杠，中文环境下显示纯中文，英文环境下显示纯英文。
+  - “其他设置”中界面语言选择下拉框采用标准 Obsidian 组件重构，并规整停靠在设置项右侧。
+  - 提炼精简了原生内置工具（必应搜索、网页抓取、天气查询、arXiv 论文检索、系统当前时间）的说明文案。
+- **默认推荐模型更新**：默认对话模型升级为 SiliconFlow 的 `Qwen/Qwen3.5-4B`，自动清理并淘汰已失效的 `DeepSeek-V4-Flash`。
+- **跨环境打包脚本增强**：优化压缩打包脚本，优先支持 `pwsh` 并平滑回退 `powershell`，保障 Windows 环境构建稳定性。
+- **版本发布**：版本号正式升级为 `0.13.0`。
+
+---
+
+# Release Notes: v0.12.0 - Obsidian Aider Official Release / 正式发布
+
+## 🌐 English
+- **Full Obsidian Community Plugin Standards Compliance**: Refactored the codebase to achieve 100% compliance with Obsidian's official plugin review requirements. Completely eliminated `@typescript-eslint/no-explicit-any` workarounds and suppression comments, replaced with strict TypeScript typing and type guards.
+- **Enhanced Multi-Window & Popout Support**: Replaced all global timers with window-scoped APIs (`window.setTimeout`, `window.clearTimeout`, `window.requestAnimationFrame`), with proper cleanup upon plugin unload.
+- **Dynamic Mobile Vault Compatibility**: Removed hardcoded `.obsidian` paths in favor of `app.vault.configDir`, guaranteeing flawless operation with custom mobile vault configurations.
+- **Universal Mobile Network Layer**: Converted remaining raw `fetch` network requests to Obsidian's native `requestUrl` API, completely eliminating CORS restrictions across desktop and mobile.
+- **Pure CSS Layout Modernization**: Converted all inline JavaScript style assignments to dedicated CSS classes (`.aide-modal-wide`, `.aide-typeahead-menu-container`), eliminated redundant `!important` flags, and standardized gap spacing.
+- **Official Build & Provenance Attestation**: Release assets now strictly conform to Obsidian guidelines (only `main.js`, `manifest.json`, `styles.css`), backed by GitHub Artifact Provenance Attestation.
+- **Version Bump**: Updated to version `0.12.0`.
+
+## 🇨🇳 中文说明
+- **全面通过 Obsidian 官方社区插件审核标准**：针对 Obsidian 官方自动化审核 Bot 提出的所有规范进行深度重构。彻底移除项目中对 `@typescript-eslint/no-explicit-any` 的规则压制，全面引入严格的 TypeScript 类型收窄与守卫机制，全库实现 0 ESLint 错误。
+- **多窗口与弹出窗口稳定性提升**：全面将裸定时器替换为作用域明确的 `window.setTimeout` / `window.clearTimeout` / `window.requestAnimationFrame`，并在插件卸载（`onunload`）时执行彻底回收，杜绝多窗口内存泄漏。
+- **移动端与自定义配置目录无缝兼容**：废除硬编码的 `.obsidian` 配置路径，统一采用 `app.vault.configDir` 动态读取，完美兼容移动端个性化配置。
+- **全平台网络请求统一**：将剩余使用原生 `fetch` 的认证与请求模块全面迁移至 Obsidian 原生 `requestUrl`，彻底杜绝移动端跨域（CORS）与网络隔离阻断。
+- **CSS 纯净样式与现代化重构**：将所有通过 JS 动态赋予的内联样式重构为标准样式类（`.aide-modal-wide` 与 `.aide-typeahead-menu-container`），移除无必要的 `!important`，规范布局 `gap` 属性。
+- **自动化构建来源凭证 (Provenance Attestation)**：Release 发布附件严格遵循官方规范（仅发布 `main.js`、`manifest.json`、`styles.css`），并集成 GitHub 官方构建产物签名认证。
+- **版本发布**：版本号升级为 `0.12.0`。
+
+---
+
 # Release Notes: v0.11.0 - Obsidian Aider Official Release / 正式发布
 
 ## 🌐 English

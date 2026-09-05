@@ -27,7 +27,7 @@ const TOOL_INFO_MAP: Record<string, { zh: string; en: string }> = {
 export function getFriendlyToolTitle(
   rawName: string,
   status: ToolCallResponseStatus,
-  language: string = 'zh',
+  language = 'zh',
 ): string {
   const isZh = language === 'zh' || language === 'zh-CN'
   const info = TOOL_INFO_MAP[rawName]
@@ -132,7 +132,7 @@ function ToolCallItem({
     response.status === ToolCallResponseStatus.PendingApproval,
   )
 
-  const { serverName, toolName } = useMemo(() => {
+  const { serverName: _serverName, toolName: _toolName } = useMemo(() => {
     try {
       return parseToolName(request.name)
     } catch (error) {
@@ -151,7 +151,7 @@ function ToolCallItem({
     }
     try {
       return JSON.stringify(JSON.parse(request.arguments), null, 2)
-    } catch (error) {
+    } catch (_error) {
       return request.arguments
     }
   }, [request.arguments])

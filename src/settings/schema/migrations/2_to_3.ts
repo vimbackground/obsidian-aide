@@ -7,8 +7,7 @@ const V3_PROVIDER_IDS = {
   morph: 'morph',
 } as const
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const NEW_DEFAULT_PROVIDERS: any[] = [
+export const NEW_DEFAULT_PROVIDERS: Record<string, unknown>[] = [
   {
     type: 'lm-studio',
     id: V3_PROVIDER_IDS['lm-studio'],
@@ -23,8 +22,7 @@ export const NEW_DEFAULT_PROVIDERS: any[] = [
   },
 ]
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const NEW_DEFAULT_CHAT_MODELS: any[] = [
+export const NEW_DEFAULT_CHAT_MODELS: Record<string, unknown>[] = [
   {
     providerType: 'deepseek',
     providerId: V3_PROVIDER_IDS.deepseek,

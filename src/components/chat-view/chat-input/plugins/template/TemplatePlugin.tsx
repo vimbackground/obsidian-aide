@@ -1,7 +1,8 @@
+import { $generateNodesFromSerializedNodes } from '@lexical/clipboard'
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import clsx from 'clsx'
 import {
-  $parseSerializedNode,
+  $insertNodes,
   COMMAND_PRIORITY_NORMAL,
   TextNode,
 } from 'lexical'
@@ -90,15 +91,13 @@ export default function TemplatePlugin() {
       closeMenu: () => void,
     ) => {
       editor.update(() => {
-        const parsedNodes = selectedOption.template.content.nodes.map((node) =>
-          $parseSerializedNode(node),
-        )
         if (nodeToRemove) {
-          const parent = nodeToRemove.getParentOrThrow()
-          parent.splice(nodeToRemove.getIndexWithinParent(), 1, parsedNodes)
-          const lastNode = parsedNodes[parsedNodes.length - 1]
-          lastNode.selectEnd()
+          nodeToRemove.remove()
         }
+        const parsedNodes = $generateNodesFromSerializedNodes(
+          selectedOption.template.content.nodes,
+        )
+        $insertNodes(parsedNodes)
         closeMenu()
       })
     },

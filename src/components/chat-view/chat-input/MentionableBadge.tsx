@@ -105,7 +105,6 @@ function FolderBadge({
 }
 
 function VaultBadge({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   mentionable,
   onDelete,
   onClick,

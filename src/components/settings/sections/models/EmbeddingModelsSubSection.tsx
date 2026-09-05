@@ -1,7 +1,6 @@
 import { Trash2 } from 'lucide-react'
-import { App, Notice } from 'obsidian'
+import { App } from 'obsidian'
 
-import { DEFAULT_EMBEDDING_MODELS } from '../../../../constants'
 import { useSettings } from '../../../../contexts/settings-context'
 import { getEmbeddingModelClient } from '../../../../core/rag/embedding'
 import SmartComposerPlugin from '../../../../main'

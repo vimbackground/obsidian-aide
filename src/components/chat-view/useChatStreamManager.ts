@@ -9,7 +9,6 @@ import {
   LLMAPIKeyInvalidException,
   LLMAPIKeyNotSetException,
   LLMBaseUrlNotSetException,
-  LLMModelNotFoundException,
 } from '../../core/llm/exception'
 import { getChatModelClient } from '../../core/llm/manager'
 import { ChatMessage } from '../../types/chat'

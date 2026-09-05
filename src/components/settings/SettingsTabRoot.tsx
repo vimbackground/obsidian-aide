@@ -1,8 +1,6 @@
 import { App } from 'obsidian'
 
 import SmartComposerPlugin from '../../main'
-import { ObsidianButton } from '../common/ObsidianButton'
-import { ObsidianSetting } from '../common/ObsidianSetting'
 
 import { ChatSection } from './sections/ChatSection'
 import { EtcSection } from './sections/EtcSection'

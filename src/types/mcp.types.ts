@@ -12,15 +12,15 @@ export type McpTool = {
 }
 
 export type McpToolCallResult = {
-  content: Array<{
+  content: {
     type: string
     text?: string
     [key: string]: unknown
-  }>
+  }[]
   isError?: boolean
 }
 
-export interface McpClient {
+export type McpClient = {
   close?: () => Promise<void>
   listTools?: () => Promise<{ tools: McpTool[] }>
   callTool?: (

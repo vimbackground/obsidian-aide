@@ -28,7 +28,7 @@ export function RAGSection({ app, plugin }: RAGSectionProps) {
   const [selectedFolderToAdd, setSelectedFolderToAdd] = useState('')
 
   // 获取 Vault 中现存的所有文件夹列表（排除系统隐藏文件夹）
-  const systemFolders = ['.obsidian', '.aider', '.aide', '.trash', '.git', '.smart-env']
+  const systemFolders = [app.vault.configDir, '.aider', '.aide', '.trash', '.git', '.smart-env']
   const allVaultFolders = app.vault
     .getAllLoadedFiles()
     .filter((f): f is TFolder => f instanceof TFolder && f.path !== '/')
@@ -37,7 +37,21 @@ export function RAGSection({ app, plugin }: RAGSectionProps) {
       (p) =>
         !systemFolders.some((sys) => p === sys || p.startsWith(sys + '/')),
     )
-    .sort()
+    .sort((a, b) => a.localeCompare(b))
+
+  // 生成具有直观层级缩进与树状符号的文件夹选项，避免人眼扁平化误读
+  const folderDropdownOptions: Record<string, string> = {}
+  for (const folderPath of allVaultFolders) {
+    const parts = folderPath.split('/')
+    const depth = parts.length - 1
+    const folderName = parts[parts.length - 1]
+    if (depth === 0) {
+      folderDropdownOptions[folderPath] = `📁 ${folderName}`
+    } else {
+      const indent = '　'.repeat(depth) // 全角空格保证在下拉框中清晰对齐
+      folderDropdownOptions[folderPath] = `${indent}└─ 📁 ${folderName}  (${folderPath})`
+    }
+  }
 
   const currentFilterMode = settings.ragOptions.filterMode ?? 'blacklist'
 
@@ -165,7 +179,7 @@ export function RAGSection({ app, plugin }: RAGSectionProps) {
         <>
           <ObsidianSetting
             name="排除目录设置 (黑名单)"
-            desc="指定不参与向量扫描的目录或文件。系统核心目录（.obsidian, .aider, .trash, .git 等）已由底层默认强制排除。"
+            desc="指定不参与向量扫描的目录或文件。系统核心目录（配置目录、.aider、.trash、.git 等）已由底层默认强制排除。"
           >
             <ObsidianButton
               text="测试匹配排除文件"
@@ -189,7 +203,7 @@ export function RAGSection({ app, plugin }: RAGSectionProps) {
               value={selectedFolderToAdd}
               options={{
                 '': '-- 点击鼠标选择要排除的文件夹 --',
-                ...Object.fromEntries(allVaultFolders.map((f) => [f, f])),
+                ...folderDropdownOptions,
               }}
               onChange={(value: string) => {
                 if (value) handleAddFolder(value)
@@ -309,7 +323,7 @@ export function RAGSection({ app, plugin }: RAGSectionProps) {
               value={selectedFolderToAdd}
               options={{
                 '': '-- 点击鼠标选择要包含的文件夹 --',
-                ...Object.fromEntries(allVaultFolders.map((f) => [f, f])),
+                ...folderDropdownOptions,
               }}
               onChange={(value: string) => {
                 if (value) handleAddFolder(value)

@@ -25,7 +25,7 @@ import {
   TextNode,
   createCommand,
 } from 'lexical'
-import {
+import React, {
   MutableRefObject,
   ReactPortal,
   useCallback,
@@ -74,7 +74,7 @@ export type MenuRenderFn<TOption extends MenuOption> = (
     options: TOption[]
   },
   matchingString: string | null,
-) => ReactPortal | JSX.Element | null
+) => ReactPortal | React.JSX.Element | null
 
 const scrollIntoViewIfNeeded = (target: HTMLElement) => {
   const typeaheadContainerNode = document.getElementById('typeahead-menu')
@@ -110,7 +110,7 @@ function getFullMatchOffset(
 ): number {
   let triggerOffset = offset
   for (let i = triggerOffset; i <= entryText.length; i++) {
-    if (documentText.substr(-i) === entryText.substr(0, i)) {
+    if (documentText.slice(-i) === entryText.slice(0, i)) {
       triggerOffset = i
     }
   }
@@ -279,7 +279,7 @@ export function LexicalMenu<TOption extends MenuOption>({
     matchingString: string,
   ) => void
   commandPriority?: CommandListenerPriority
-}): JSX.Element | null {
+}): React.JSX.Element | null {
   const [selectedIndex, setHighlightedIndex] = useState<null | number>(null)
 
   const matchingString = resolution.match?.matchingString
@@ -485,7 +485,7 @@ export function useMenuAnchorRef(
   shouldIncludePageYOffset__EXPERIMENTAL = true,
 ): MutableRefObject<HTMLElement> {
   const [editor] = useLexicalComposerContext()
-  const anchorElementRef = useRef<HTMLElement>(document.createElement('div'))
+  const anchorElementRef = useRef<HTMLElement>(createEl('div'))
   const positionMenu = useCallback(() => {
     anchorElementRef.current.style.top = anchorElementRef.current.style.bottom
     const rootElement = editor.getRootElement()
@@ -541,8 +541,7 @@ export function useMenuAnchorRef(
         containerDiv.setAttribute('aria-label', 'Typeahead menu')
         containerDiv.setAttribute('id', 'typeahead-menu')
         containerDiv.setAttribute('role', 'listbox')
-        containerDiv.style.display = 'block'
-        containerDiv.style.position = 'absolute'
+        containerDiv.addClass('aide-typeahead-menu-container')
         parent.append(containerDiv)
       }
       anchorElementRef.current = containerDiv

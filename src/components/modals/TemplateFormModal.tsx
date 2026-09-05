@@ -1,13 +1,17 @@
 import { $generateNodesFromSerializedNodes } from '@lexical/clipboard'
 import { BaseSerializedNode } from '@lexical/clipboard/clipboard'
 import { InitialEditorStateType } from '@lexical/react/LexicalComposer'
-import { $insertNodes, LexicalEditor } from 'lexical'
+import { $getRoot, $insertNodes, LexicalEditor } from 'lexical'
 import { App, Notice } from 'obsidian'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { AppProvider } from '../../contexts/app-context'
+import { SettingsProvider } from '../../contexts/settings-context'
 import { DuplicateTemplateException } from '../../database/json/exception'
 import { TemplateManager } from '../../database/json/template/TemplateManager'
+import SmartComposerPlugin from '../../main'
+import { smartComposerSettingsSchema } from '../../settings/schema/setting.types'
+import { useI18n } from '../../utils/i18n'
 import LexicalContentEditable from '../chat-view/chat-input/LexicalContentEditable'
 import { ObsidianButton } from '../common/ObsidianButton'
 import { ObsidianSetting } from '../common/ObsidianSetting'
@@ -41,7 +45,7 @@ export class CreateTemplateModal extends ReactModal<TemplateFormComponentProps> 
         onSubmit,
       },
       options: {
-        title: 'Add Template',
+        title: 'Add Template', // Will be rendered by wrapper or modal option
       },
     })
   }
@@ -79,15 +83,46 @@ function TemplateFormComponentWrapper({
   onSubmit,
   onClose,
 }: TemplateFormComponentProps) {
+  const plugin = (app as any).plugins?.getPlugin?.('aider') as
+    | SmartComposerPlugin
+    | undefined
+
+  const content = (
+    <TemplateFormComponent
+      app={app}
+      selectedSerializedNodes={selectedSerializedNodes}
+      templateId={templateId}
+      onSubmit={onSubmit}
+      onClose={onClose}
+    />
+  )
+
+  if (plugin) {
+    return (
+      <AppProvider app={app}>
+        <SettingsProvider
+          settings={plugin.settings}
+          setSettings={(newSettings) => plugin.setSettings(newSettings)}
+          addSettingsChangeListener={(listener) =>
+            plugin.addSettingsChangeListener(listener)
+          }
+        >
+          {content}
+        </SettingsProvider>
+      </AppProvider>
+    )
+  }
+
+  const defaultSettings = smartComposerSettingsSchema.parse({})
   return (
     <AppProvider app={app}>
-      <TemplateFormComponent
-        app={app}
-        selectedSerializedNodes={selectedSerializedNodes}
-        templateId={templateId}
-        onSubmit={onSubmit}
-        onClose={onClose}
-      />
+      <SettingsProvider
+        settings={defaultSettings}
+        setSettings={() => {}}
+        addSettingsChangeListener={() => () => {}}
+      >
+        {content}
+      </SettingsProvider>
     </AppProvider>
   )
 }
@@ -100,10 +135,15 @@ function TemplateFormComponent({
   onClose,
 }: TemplateFormComponentProps) {
   const templateManager = useMemo(() => new TemplateManager(app), [app])
+  const { t, language } = useI18n()
+  const isZh = language === 'zh'
 
   const [templateName, setTemplateName] = useState('')
   const editorRef = useRef<LexicalEditor | null>(null)
   const contentEditableRef = useRef<HTMLDivElement>(null)
+
+  const [isLoadingTemplate, setIsLoadingTemplate] = useState(Boolean(templateId))
+  const existingNodesRef = useRef<any>(null)
 
   const initialEditorState: InitialEditorStateType = (
     editor: LexicalEditor,
@@ -113,8 +153,26 @@ function TemplateFormComponent({
       const parsedNodes = $generateNodesFromSerializedNodes(
         selectedSerializedNodes,
       )
-      $insertNodes(parsedNodes)
+      const root = $getRoot()
+      root.clear()
+      parsedNodes.forEach((node) => root.append(node))
     })
+  }
+
+  const applyNodesToEditor = (nodes: any[]) => {
+    if (!editorRef.current) return false
+    try {
+      editorRef.current.update(() => {
+        const parsedNodes = $generateNodesFromSerializedNodes(nodes)
+        const root = $getRoot()
+        root.clear()
+        parsedNodes.forEach((node) => root.append(node))
+      })
+      return true
+    } catch (err) {
+      console.warn('Failed to apply nodes to Lexical editor:', err)
+      return false
+    }
   }
 
   const handleSubmit = async () => {
@@ -123,11 +181,19 @@ function TemplateFormComponent({
       const serializedEditorState = editorRef.current.toJSON()
       const nodes = serializedEditorState.editorState.root.children
       if (nodes.length === 0) {
-        new Notice('Please enter a content for your template')
+        new Notice(
+          isZh
+            ? '请输入模板内容'
+            : 'Please enter content for your template',
+        )
         return
       }
       if (templateName.trim().length === 0) {
-        new Notice('Please enter a name for your template')
+        new Notice(
+          isZh
+            ? '请输入模板名称'
+            : 'Please enter a name for your template',
+        )
         return
       }
 
@@ -144,17 +210,27 @@ function TemplateFormComponent({
       }
 
       new Notice(
-        `Template ${templateId === undefined ? 'created' : 'updated'}: ${templateName}`,
+        isZh
+          ? `模板已${templateId === undefined ? '创建' : '更新'}: ${templateName}`
+          : `Template ${templateId === undefined ? 'created' : 'updated'}: ${templateName}`,
       )
 
       onSubmit?.()
       onClose()
     } catch (error) {
       if (error instanceof DuplicateTemplateException) {
-        new Notice('A template with this name already exists')
+        new Notice(
+          isZh
+            ? '已存在同名的模板'
+            : 'A template with this name already exists',
+        )
       } else {
         console.error(error)
-        new Notice('Failed to create template')
+        new Notice(
+          isZh
+            ? '保存模板失败，请重试'
+            : 'Failed to save template',
+        )
       }
     }
   }
@@ -164,23 +240,43 @@ function TemplateFormComponent({
   useEffect(() => {
     isMountedRef.current = true
 
-    async function fetchExistingTemplate(templateId: string) {
+    async function fetchExistingTemplate(id: string) {
       try {
-        const existingTemplate = await templateManager.findById(templateId)
+        const existingTemplate = await templateManager.findById(id)
         if (existingTemplate && isMountedRef.current) {
           setTemplateName(existingTemplate.name)
-          editorRef.current?.update(() => {
-            const parsedNodes = $generateNodesFromSerializedNodes(
-              existingTemplate.content.nodes,
-            )
-            $insertNodes(parsedNodes)
-          })
+          existingNodesRef.current = existingTemplate.content.nodes
+
+          // Try immediate update
+          const applied = applyNodesToEditor(existingTemplate.content.nodes)
+          if (!applied) {
+            // If editor wasn't ready yet, poll every 50ms up to 15 times (750ms)
+            let attempts = 0
+            const interval = setInterval(() => {
+              if (!isMountedRef.current || attempts++ > 15) {
+                clearInterval(interval)
+                return
+              }
+              if (existingNodesRef.current && applyNodesToEditor(existingNodesRef.current)) {
+                clearInterval(interval)
+              }
+            }, 50)
+          }
         }
       } catch (error) {
         console.error('Failed to fetch existing template:', error)
-        new Notice('Failed to load template. Please try again.')
+        new Notice(
+          isZh
+            ? '加载模板失败，请重试。'
+            : 'Failed to load template. Please try again.',
+        )
+      } finally {
+        if (isMountedRef.current) {
+          setIsLoadingTemplate(false)
+        }
       }
     }
+
     if (templateId) {
       fetchExistingTemplate(templateId)
     }
@@ -188,11 +284,15 @@ function TemplateFormComponent({
     return () => {
       isMountedRef.current = false
     }
-  }, [templateId, templateManager])
+  }, [templateId, templateManager, isZh])
 
   return (
     <>
-      <ObsidianSetting name="Name" desc="The name of the template" required>
+      <ObsidianSetting
+        name={isZh ? '模板名称' : 'Name'}
+        desc={isZh ? '该提示词模板的显示名称' : 'The name of the template'}
+        required
+      >
         <ObsidianTextInput
           value={templateName}
           onChange={(value) => setTemplateName(value)}
@@ -200,8 +300,8 @@ function TemplateFormComponent({
       </ObsidianSetting>
 
       <ObsidianSetting
-        name="Template Content"
-        desc="Content of the template"
+        name={isZh ? '模板内容' : 'Template Content'}
+        desc={isZh ? '模板主体文本，支持在对话框中一键填充' : 'Content of the template'}
         className="aide-settings-description-preserve-whitespace"
         required
       />
@@ -215,8 +315,15 @@ function TemplateFormComponent({
       </div>
 
       <ObsidianSetting>
-        <ObsidianButton text="Save" onClick={handleSubmit} cta />
-        <ObsidianButton text="Cancel" onClick={onClose} />
+        <ObsidianButton
+          text={t('common.save')}
+          onClick={handleSubmit}
+          cta
+        />
+        <ObsidianButton
+          text={t('common.cancel')}
+          onClick={onClose}
+        />
       </ObsidianSetting>
     </>
   )

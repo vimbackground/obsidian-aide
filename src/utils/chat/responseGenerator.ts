@@ -163,7 +163,7 @@ export class ResponseGenerator {
     }
   }
 
-  private async streamSingleResponse(allowTools: boolean = true): Promise<{
+  private async streamSingleResponse(allowTools = true): Promise<{
     toolCallRequests: ToolCallRequest[]
   }> {
     const requestMessages = await this.promptGenerator.generateRequestMessages({

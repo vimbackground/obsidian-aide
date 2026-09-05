@@ -56,3 +56,9 @@ export const useSettings = () => {
   }
   return settings
 }
+
+export const useSettingsSafe = () => {
+  return React.useContext(SettingsContext)
+}
+
+export { SettingsContext }

@@ -3,7 +3,6 @@ import { App, TFile, htmlToMarkdown, requestUrl } from 'obsidian'
 import { editorStateToPlainText } from '../../components/chat-view/chat-input/utils/editor-state-to-plain-text'
 import { QueryProgressState } from '../../components/chat-view/QueryProgress'
 import { RAGEngine } from '../../core/rag/ragEngine'
-import { SelectEmbedding } from '../../types/vector.types'
 import { SmartComposerSettings } from '../../settings/schema/setting.types'
 import {
   ChatAssistantMessage,
@@ -22,6 +21,8 @@ import {
 } from '../../types/mentionable'
 import { PromptLevel } from '../../types/prompt-level.types'
 import { ToolCallResponseStatus } from '../../types/tool-call.types'
+import { SelectEmbedding } from '../../types/vector.types'
+import { stripFrontmatter } from '../common/markdown-splitter'
 import { tokenCount } from '../llm/token'
 import {
   getNestedFiles,
@@ -29,7 +30,6 @@ import {
   readTFileContent,
 } from '../obsidian'
 
-import { stripFrontmatter } from '../common/markdown-splitter'
 import { YoutubeTranscript, isYoutubeUrl } from './youtube-transcript'
 
 function sanitizeMarkdownForLLM(content: string): string {
@@ -286,7 +286,7 @@ ${message.annotations
       let similaritySearchResults = undefined
 
       useVaultSearch =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean boolean-or evaluation intended for vault search flag
         useVaultSearch ||
         message.mentionables.some(
           (m): m is MentionableVault => m.type === 'vault',

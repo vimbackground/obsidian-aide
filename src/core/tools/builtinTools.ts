@@ -1,14 +1,22 @@
 import { htmlToMarkdown, requestUrl } from 'obsidian'
+
 import { McpTool } from '../../types/mcp.types'
 
-export interface BuiltinTool {
+export type BuiltinTool = {
   tool: McpTool
-  execute: (args: Record<string, any>) => Promise<string>
+  execute: (args: Record<string, unknown>) => Promise<string>
 }
 
 // 1. 国内必应搜索 (Bing CN Search) - 直连 cn.bing.com，免翻墙，免 Key
-async function executeBingSearch(args: Record<string, any>): Promise<string> {
-  const query = args.query || args.keyword || ''
+async function executeBingSearch(
+  args: Record<string, unknown>,
+): Promise<string> {
+  const query =
+    typeof args.query === 'string'
+      ? args.query
+      : typeof args.keyword === 'string'
+        ? args.keyword
+        : ''
   if (!query) return '错误：请提供搜索关键词 (query)'
 
   try {
@@ -25,7 +33,7 @@ async function executeBingSearch(args: Record<string, any>): Promise<string> {
     })
 
     if (res.status !== 200) {
-      return `搜索请求失败，状态码: ${res.status}`
+      return `搜索请求失败，状态码: ${String(res.status)}`
     }
 
     const parser = new DOMParser()
@@ -35,16 +43,16 @@ async function executeBingSearch(args: Record<string, any>): Promise<string> {
     const items = doc.querySelectorAll('.b_algo')
     items.forEach((item) => {
       if (results.length >= 6) return
-      const titleEl = item.querySelector('h2 a') as HTMLAnchorElement | null
+      const titleEl = item.querySelector('h2 a')
       const snippetEl =
-        (item.querySelector('.b_caption p') as HTMLElement | null) ||
-        (item.querySelector('.b_algoSlug') as HTMLElement | null) ||
+        item.querySelector('.b_caption p') ||
+        item.querySelector('.b_algoSlug') ||
         (item.querySelector('p') as HTMLElement | null)
 
       if (titleEl && titleEl.textContent) {
         const title = titleEl.textContent.trim()
         const link = titleEl.getAttribute('href') || ''
-        const snippet = snippetEl ? snippetEl.textContent?.trim() || '' : ''
+        const snippet = snippetEl?.textContent?.trim() || ''
         if (link && link.startsWith('http')) {
           results.push({ title, link, snippet })
         }
@@ -57,7 +65,7 @@ async function executeBingSearch(args: Record<string, any>): Promise<string> {
 
     let output = `### 针对 "${query}" 的网络搜索结果：\n\n`
     results.forEach((r, idx) => {
-      output += `${idx + 1}. **[${r.title}](${r.link})**\n   ${r.snippet}\n\n`
+      output += `${String(idx + 1)}. **[${r.title}](${r.link})**\n   ${r.snippet}\n\n`
     })
     return output.trim()
   } catch (error) {
@@ -66,8 +74,10 @@ async function executeBingSearch(args: Record<string, any>): Promise<string> {
 }
 
 // 2. 网页正文抓取与提取 (Web Fetch) - 原生 htmlToMarkdown，免无头浏览器
-async function executeWebFetch(args: Record<string, any>): Promise<string> {
-  const url = args.url || ''
+async function executeWebFetch(
+  args: Record<string, unknown>,
+): Promise<string> {
+  const url = typeof args.url === 'string' ? args.url : ''
   if (!url) return '错误：请提供有效的网页 URL'
 
   try {
@@ -81,7 +91,7 @@ async function executeWebFetch(args: Record<string, any>): Promise<string> {
     })
 
     if (res.status !== 200) {
-      return `抓取网页失败，HTTP 状态码: ${res.status}`
+      return `抓取网页失败，HTTP 状态码: ${String(res.status)}`
     }
 
     let markdown = htmlToMarkdown(res.text)
@@ -99,15 +109,30 @@ async function executeWebFetch(args: Record<string, any>): Promise<string> {
 }
 
 // 3. 实时天气查询 (Weather Service) - 基于 Open-Meteo 全球公开免 Key 气象源
-async function executeWeather(args: Record<string, any>): Promise<string> {
-  const city = args.city || args.location || ''
-  if (!city) return '错误：请提供要查询的城市或地区名称（如“北京”、“上海”、“深圳”）'
+async function executeWeather(
+  args: Record<string, unknown>,
+): Promise<string> {
+  const city =
+    typeof args.city === 'string'
+      ? args.city
+      : typeof args.location === 'string'
+        ? args.location
+        : ''
+  if (!city)
+    return '错误：请提供要查询的城市或地区名称（如“北京”、“上海”、“深圳”）'
 
   try {
     // 1. 地理编码查询
     const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=zh`
     const geoRes = await requestUrl({ url: geoUrl, method: 'GET' })
-    const geoData = geoRes.json
+    const geoData = geoRes.json as {
+      results?: Array<{
+        latitude: number
+        longitude: number
+        name: string
+        country: string
+      }>
+    }
     if (!geoData.results || geoData.results.length === 0) {
       return `未能检索到城市 "${city}" 的地理坐标，请核对城市名称。`
     }
@@ -115,9 +140,22 @@ async function executeWeather(args: Record<string, any>): Promise<string> {
     const { latitude, longitude, name, country } = geoData.results[0]
 
     // 2. 气象预报查询
-    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${String(latitude)}&longitude=${String(longitude)}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`
     const weatherRes = await requestUrl({ url: weatherUrl, method: 'GET' })
-    const wData = weatherRes.json
+    const wData = weatherRes.json as {
+      current?: {
+        weather_code?: number
+        temperature_2m?: number
+        relative_humidity_2m?: number
+        wind_speed_10m?: number
+      }
+      daily?: {
+        time?: string[]
+        temperature_2m_max?: number[]
+        temperature_2m_min?: number[]
+        weather_code?: number[]
+      }
+    }
 
     const weatherCodeMap: Record<number, string> = {
       0: '晴朗 ☀️',
@@ -143,9 +181,18 @@ async function executeWeather(args: Record<string, any>): Promise<string> {
 
     const currentCode = wData.current?.weather_code ?? 0
     const currentDesc = weatherCodeMap[currentCode] || '多云'
-    const temp = wData.current?.temperature_2m ?? '未知'
-    const humidity = wData.current?.relative_humidity_2m ?? '未知'
-    const wind = wData.current?.wind_speed_10m ?? '未知'
+    const temp =
+      wData.current?.temperature_2m != null
+        ? String(wData.current.temperature_2m)
+        : '未知'
+    const humidity =
+      wData.current?.relative_humidity_2m != null
+        ? String(wData.current.relative_humidity_2m)
+        : '未知'
+    const wind =
+      wData.current?.wind_speed_10m != null
+        ? String(wData.current.wind_speed_10m)
+        : '未知'
 
     let report = `### 【${name} (${country})】实时天气预报\n\n`
     report += `- **当前状况**: ${currentDesc}\n`
@@ -153,15 +200,15 @@ async function executeWeather(args: Record<string, any>): Promise<string> {
     report += `- **相对湿度**: ${humidity}%\n`
     report += `- **当前风速**: ${wind} km/h\n`
 
-    if (wData.daily && wData.daily.time) {
+    if (wData.daily && Array.isArray(wData.daily.time)) {
       report += `\n**未来 3 日天气趋势：**\n`
       for (let i = 0; i < Math.min(3, wData.daily.time.length); i++) {
         const date = wData.daily.time[i]
-        const maxT = wData.daily.temperature_2m_max[i]
-        const minT = wData.daily.temperature_2m_min[i]
-        const dCode = wData.daily.weather_code[i]
+        const maxT = wData.daily.temperature_2m_max?.[i] ?? 0
+        const minT = wData.daily.temperature_2m_min?.[i] ?? 0
+        const dCode = wData.daily.weather_code?.[i] ?? 0
         const dDesc = weatherCodeMap[dCode] || '晴到多云'
-        report += `- ${date}: ${dDesc}, ${minT}°C ~ ${maxT}°C\n`
+        report += `- ${date}: ${dDesc}, ${String(minT)}°C ~ ${String(maxT)}°C\n`
       }
     }
 
@@ -172,8 +219,15 @@ async function executeWeather(args: Record<string, any>): Promise<string> {
 }
 
 // 4. arXiv 学术论文检索 (arXiv Search) - 直连 arXiv 官方开放 API
-async function executeArxivSearch(args: Record<string, any>): Promise<string> {
-  const query = args.query || args.keyword || ''
+async function executeArxivSearch(
+  args: Record<string, unknown>,
+): Promise<string> {
+  const query =
+    typeof args.query === 'string'
+      ? args.query
+      : typeof args.keyword === 'string'
+        ? args.keyword
+        : ''
   if (!query) return '错误：请提供论文关键词或主题 (query)'
 
   try {
@@ -181,7 +235,7 @@ async function executeArxivSearch(args: Record<string, any>): Promise<string> {
     const res = await requestUrl({ url, method: 'GET' })
 
     if (res.status !== 200) {
-      return `检索 arXiv 失败，HTTP 状态码: ${res.status}`
+      return `检索 arXiv 失败，HTTP 状态码: ${String(res.status)}`
     }
 
     const parser = new DOMParser()
@@ -209,7 +263,7 @@ async function executeArxivSearch(args: Record<string, any>): Promise<string> {
         if (a.textContent) authors.push(a.textContent.trim())
       })
 
-      output += `${idx + 1}. **[${title}](${link})**\n`
+      output += `${String(idx + 1)}. **[${title}](${link})**\n`
       output += `   - **作者**: ${authors.slice(0, 4).join(', ')}${authors.length > 4 ? ' 等' : ''}\n`
       output += `   - **发布日期**: ${published}\n`
       output += `   - **摘要**: ${summary.substring(0, 200)}...\n\n`
@@ -349,7 +403,7 @@ export function getBuiltinToolsList(): McpTool[] {
 
 export async function executeBuiltinTool(
   toolName: string,
-  args: Record<string, any> = {},
+  args: Record<string, unknown> = {},
 ): Promise<string> {
   const norm = normalizeToolName(toolName)
   const normalizedName = norm.startsWith('builtin__')

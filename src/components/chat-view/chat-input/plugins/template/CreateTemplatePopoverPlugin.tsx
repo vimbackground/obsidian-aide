@@ -7,7 +7,7 @@ import {
   SELECTION_CHANGE_COMMAND,
 } from 'lexical'
 import { App } from 'obsidian'
-import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react'
+import React, { CSSProperties, useCallback, useEffect, useRef, useState } from 'react'
 
 import { CreateTemplateModal } from '../../../../modals/TemplateFormModal'
 
@@ -19,7 +19,7 @@ export default function CreateTemplatePopoverPlugin({
   app: App
   anchorElement: HTMLElement | null
   contentEditableElement: HTMLElement | null
-}): JSX.Element | null {
+}): React.JSX.Element | null {
   const [editor] = useLexicalComposerContext()
 
   const [popoverStyle, setPopoverStyle] = useState<CSSProperties | null>(null)

@@ -1,5 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
-import { Book, CircleStop, FileText, History, Plus } from 'lucide-react'
+import { CircleStop, FileText, History, Sparkles } from 'lucide-react'
 import { App, Notice } from 'obsidian'
 
 import { useI18n } from '../../utils/i18n'
@@ -207,6 +206,117 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
       type: 'idle',
     })
     abortActiveStreams()
+  }
+
+  const [isGeneratingTitle, setIsGeneratingTitle] = useState(false)
+
+  const handleGenerateTitle = async () => {
+    if (isGeneratingTitle) return
+    if (chatMessages.length === 0) {
+      new Notice(
+        language === 'zh'
+          ? '当前会话没有消息，无法生成标题'
+          : 'Current chat has no messages to generate a title',
+      )
+      return
+    }
+
+    if (!settings.chatModelId) {
+      new Notice(
+        language === 'zh'
+          ? '请先配置并选择聊天模型'
+          : 'Please configure and select a chat model first',
+      )
+      return
+    }
+
+    try {
+      setIsGeneratingTitle(true)
+      const { providerClient, model } = getChatModelClient({
+        modelId: settings.chatModelId,
+        settings,
+        setSettings,
+      })
+
+      // Extract first 2 and last 2 messages (deduplicated by id)
+      const selectedMsgs: ChatMessage[] = []
+      const seenIds = new Set<string>()
+
+      for (let i = 0; i < Math.min(2, chatMessages.length); i++) {
+        const msg = chatMessages[i]
+        if (!seenIds.has(msg.id)) {
+          seenIds.add(msg.id)
+          selectedMsgs.push(msg)
+        }
+      }
+
+      const startIndex = Math.max(0, chatMessages.length - 2)
+      for (let i = startIndex; i < chatMessages.length; i++) {
+        const msg = chatMessages[i]
+        if (!seenIds.has(msg.id)) {
+          seenIds.add(msg.id)
+          selectedMsgs.push(msg)
+        }
+      }
+
+      const snippets = selectedMsgs.map((m) => {
+        let text = ''
+        if (m.role === 'user') {
+          if (typeof m.promptContent === 'string' && m.promptContent.trim()) {
+            text = m.promptContent
+          } else if (m.content) {
+            text = editorStateToPlainText(m.content)
+          }
+        } else if (m.role === 'assistant') {
+          text = m.content || ''
+        } else if (m.role === 'tool') {
+          text = '[工具调用与返回数据]'
+        }
+        return `${m.role === 'user' ? '用户' : m.role === 'assistant' ? '助手' : '工具'}: ${text.slice(0, 300)}`
+      }).join('\n\n')
+
+      const prompt = `请根据以下对话片段，总结并生成一个非常简短、精准的对话标题（不超过12个字，直接输出纯文本标题，不要包含任何标点符号、引号或多余解释）：\n\n${snippets}`
+
+      const response = await providerClient.generateResponse(model, {
+        model: model.model,
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+      })
+
+      const rawContent = response.choices?.[0]?.message?.content || ''
+      let generatedTitle = rawContent.trim()
+      // Clean quotes, newlines, or extra markings
+      generatedTitle = generatedTitle
+        .replace(/^[「“"']+|[」”"']+$/g, '')
+        .replace(/^(标题|Title)[：:\s]*/i, '')
+        .split('\n')[0]
+        .trim()
+        .slice(0, 15)
+
+      if (generatedTitle) {
+        await updateConversationTitle(currentConversationId, generatedTitle)
+        const path = app.workspace.getActiveFile()?.path
+        if (path) void refreshArticleChats(path)
+        new Notice(
+          language === 'zh'
+            ? `标题已更新为: ${generatedTitle}`
+            : `Title updated: ${generatedTitle}`,
+        )
+      }
+    } catch (err: any) {
+      console.error('Failed to generate title:', err)
+      new Notice(
+        language === 'zh'
+          ? `生成标题失败: ${err.message || err}`
+          : `Failed to generate title: ${err.message || err}`,
+      )
+    } finally {
+      setIsGeneratingTitle(false)
+    }
   }
 
   const handleUserMessageSubmit = useCallback(
@@ -581,27 +691,6 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
             {language === 'zh' ? '对话' : 'Chat'}
           </h1>
           <button
-            onClick={() => {
-              new TemplateSectionModal(app).open()
-            }}
-            className="clickable-icon"
-            title={language === 'zh' ? '提示词模板' : 'Prompt Templates'}
-            aria-label="Prompt Templates"
-          >
-            <Book size={16} />
-          </button>
-          <button
-            onClick={() => handleNewChat()}
-            className="clickable-icon"
-            title={language === 'zh' ? '新建会话' : 'New Chat'}
-            aria-label="New Chat"
-          >
-            <Plus size={16} />
-          </button>
-        </div>
-
-        <div className="aide-chat-header-buttons">
-          <button
             onClick={async () => {
               const nextLang = language === 'zh' ? 'en' : 'zh'
               await setSettings({
@@ -615,10 +704,35 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
                 ? '切换为英文 (Switch to English)'
                 : '切换为中文 (Switch to Chinese)'
             }
+            style={{ marginLeft: '4px' }}
           >
             <span style={{ fontSize: '11px', fontWeight: 600, padding: '0 2px' }}>
               {language === 'zh' ? '中' : 'EN'}
             </span>
+          </button>
+        </div>
+
+        <div className="aide-chat-header-buttons">
+          {/* AI 自动根据上下文生成标题 */}
+          <button
+            onClick={() => void handleGenerateTitle()}
+            className="clickable-icon"
+            disabled={isGeneratingTitle}
+            title={
+              language === 'zh'
+                ? isGeneratingTitle
+                  ? '正在生成标题...'
+                  : 'AI 生成会话标题'
+                : isGeneratingTitle
+                  ? 'Generating title...'
+                  : 'Generate Title with AI'
+            }
+            style={{
+              opacity: isGeneratingTitle ? 0.6 : 1,
+              cursor: isGeneratingTitle ? 'not-allowed' : 'pointer',
+            }}
+          >
+            <Sparkles size={16} />
           </button>
 
           {/* 当前文章历史专属按钮 */}

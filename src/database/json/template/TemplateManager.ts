@@ -21,18 +21,11 @@ export class TemplateManager extends AbstractJsonRepository<
 
   protected generateFileName(template: Template): string {
     // Format: v{schemaVersion}_name_id.json (with name encoded)
-    const clean = (template.name || 'template')
-      .replace(/[\\/:*?"<>|\r\n\t]/g, ' ')
-      .trim() || 'template'
-    let truncated = clean
-    while (
-      truncated.length > 0 &&
-      encodeURIComponent(truncated).replace(/\*/g, '%2A').length > 150
-    ) {
-      truncated = truncated.slice(0, -1)
+    let name = template.name
+    if (encodeURIComponent(name).length > 180) {
+      name = name.slice(0, 50)
     }
-    if (!truncated) truncated = 'template'
-    const encodedName = encodeURIComponent(truncated).replace(/\*/g, '%2A')
+    const encodedName = encodeURIComponent(name).replace(/\*/g, '%2A')
     return `v${TEMPLATE_SCHEMA_VERSION}_${encodedName}_${template.id}.json`
   }
 
@@ -154,5 +147,30 @@ export class TemplateManager extends AbstractJsonRepository<
     ).filter((template): template is Template => template !== null)
 
     return templates
+  }
+
+  public async ensurePresetTemplates(): Promise<void> {
+    const existing = await this.listMetadata()
+    if (existing.length > 0) return
+
+    const { OBSIDIAN_PRESET_TEMPLATES } = await import('../../../constants')
+    const { plainTextToEditorState } = await import(
+      '../../../components/chat-view/chat-input/utils/editor-state-to-plain-text'
+    )
+
+    for (const preset of OBSIDIAN_PRESET_TEMPLATES) {
+      const name = `${preset.nameZh} (${preset.nameEn})`
+      const contentText = `[中文提示 / Chinese]\n${preset.contentZh}\n\n---\n[English Prompt]\n${preset.contentEn}`
+      const editorState = plainTextToEditorState(contentText)
+      const nodes = editorState.root?.children || []
+      try {
+        await this.createTemplate({
+          name,
+          content: { nodes: nodes as any },
+        })
+      } catch (err) {
+        console.warn(`[Aider] Failed to init preset template: ${name}`, err)
+      }
+    }
   }
 }

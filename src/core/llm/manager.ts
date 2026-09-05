@@ -3,18 +3,15 @@ import { ChatModel } from '../../types/chat-model.types'
 import { LLMProvider } from '../../types/provider.types'
 
 import { AnthropicProvider } from './anthropic'
-import { AnthropicClaudeCodeProvider } from './anthropicClaudeCodeProvider'
 import { AzureOpenAIProvider } from './azureOpenaiProvider'
 import { BaseLLMProvider } from './base'
 import { DeepSeekStudioProvider } from './deepseekStudioProvider'
 import { LLMModelNotFoundException } from './exception'
 import { GeminiProvider } from './gemini'
-import { GeminiPlanProvider } from './geminiPlanProvider'
 import { LmStudioProvider } from './lmStudioProvider'
 import { MistralProvider } from './mistralProvider'
 import { OllamaProvider } from './ollama'
 import { OpenAIAuthenticatedProvider } from './openai'
-import { OpenAICodexProvider } from './openaiCodexProvider'
 import { OpenAICompatibleProvider } from './openaiCompatibleProvider'
 import { OpenRouterProvider } from './openRouterProvider'
 import { PerplexityProvider } from './perplexityProvider'
@@ -28,7 +25,7 @@ import { XaiProvider } from './xaiProvider'
 export function getProviderClient({
   providerId,
   settings,
-  setSettings,
+  setSettings: _setSettings,
 }: {
   providerId: string
   settings: SmartComposerSettings
@@ -39,31 +36,7 @@ export function getProviderClient({
     throw new Error(`Provider ${providerId} not found`)
   }
 
-  const onProviderUpdate = setSettings
-    ? async (targetProviderId: string, update: Partial<LLMProvider>) => {
-        const updatedProviders: LLMProvider[] = settings.providers.map(
-          (item) =>
-            item.id === targetProviderId
-              ? ({ ...item, ...update } as LLMProvider)
-              : item,
-        )
-        await setSettings({
-          ...settings,
-          providers: updatedProviders,
-        })
-      }
-    : undefined
-
   switch (provider.type) {
-    case 'anthropic-plan': {
-      return new AnthropicClaudeCodeProvider(provider, onProviderUpdate)
-    }
-    case 'openai-plan': {
-      return new OpenAICodexProvider(provider, onProviderUpdate)
-    }
-    case 'gemini-plan': {
-      return new GeminiPlanProvider(provider, onProviderUpdate)
-    }
     case 'anthropic': {
       return new AnthropicProvider(provider)
     }
@@ -101,7 +74,12 @@ export function getProviderClient({
     case 'siliconflow':
     case 'groq':
     case 'modelscope': {
-      return new OpenAICompatibleProvider(provider as any)
+      return new OpenAICompatibleProvider(
+        provider as unknown as Extract<
+          LLMProvider,
+          { type: 'openai-compatible' }
+        >,
+      )
     }
   }
 }

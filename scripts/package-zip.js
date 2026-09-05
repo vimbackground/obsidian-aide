@@ -39,9 +39,14 @@ try {
   }
 
   if (process.platform === 'win32') {
-    // Windows 环境使用 PowerShell Compress-Archive
-    const psCmd = `powershell -NoProfile -Command "Compress-Archive -Path 'output/obsidian-aider/*' -DestinationPath 'output/aider.zip' -Force"`;
-    execSync(psCmd, { cwd: projectRoot, stdio: 'inherit' });
+    // Windows 环境优先尝试 pwsh，否则回退 powershell
+    const winPs = 'pwsh -NoProfile -Command "Compress-Archive -Path \'output/obsidian-aider/*\' -DestinationPath \'output/aider.zip\' -Force"';
+    const fallbackPs = 'powershell -NoProfile -Command "Compress-Archive -Path \'output/obsidian-aider/*\' -DestinationPath \'output/aider.zip\' -Force"';
+    try {
+      execSync(winPs, { cwd: projectRoot, stdio: 'inherit' });
+    } catch {
+      execSync(fallbackPs, { cwd: projectRoot, stdio: 'inherit' });
+    }
   } else {
     // Linux / macOS 环境使用标准 zip 命令
     const shCmd = `cd output/obsidian-aider && zip -q -r ../aider.zip main.js manifest.json styles.css`;

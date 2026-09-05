@@ -5,8 +5,6 @@
  * work and is not worth it for now. Mobile has no Node APIs, so Node modules are
  * loaded at runtime only when running on desktop.
  */
-import type { IncomingMessage } from 'http'
-
 import { Platform } from 'obsidian'
 
 export type StreamSource = ReadableStream<Uint8Array> | NodeJS.ReadableStream
@@ -138,14 +136,14 @@ async function nodePost(
   headers?: Record<string, string>,
   signal?: AbortSignal,
   contentType = 'application/json',
-): Promise<IncomingMessage> {
+): Promise<NodeJS.ReadableStream & { statusCode?: number }> {
   if (!Platform.isDesktop) {
     throw new Error('HTTP transport is not available on mobile')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-var-requires -- Node http module is dynamically loaded on desktop only
   const http = require('http') as typeof import('http')
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-var-requires -- Node https module is dynamically loaded on desktop only
   const https = require('https') as typeof import('https')
   const url = new URL(endpoint)
   const client = url.protocol === 'https:' ? https : http
@@ -214,7 +212,7 @@ async function readStreamToString(
     if (typeof chunk === 'string') {
       chunks.push(Buffer.from(chunk))
     } else {
-      chunks.push(chunk as Uint8Array)
+      chunks.push(chunk)
     }
   }
   return Buffer.concat(chunks).toString('utf8')

@@ -1,21 +1,70 @@
 import { App } from 'obsidian'
 
+import { AppProvider } from '../../contexts/app-context'
+import { SettingsProvider } from '../../contexts/settings-context'
+import { Template } from '../../database/json/template/types'
+import SmartComposerPlugin from '../../main'
+import { smartComposerSettingsSchema } from '../../settings/schema/setting.types'
 import { ReactModal } from '../common/ReactModal'
 import { TemplateSection } from '../settings/sections/TemplateSection'
 
-type TemplateSectionProps = {
+type TemplateSectionModalProps = {
   app: App
+  onSelectTemplate?: (template: Template) => void
 }
 
-export class TemplateSectionModal extends ReactModal<TemplateSectionProps> {
-  constructor(app: App) {
+function TemplateSectionModalWrapper({
+  app,
+  onSelectTemplate,
+}: TemplateSectionModalProps) {
+  const plugin = (app as any).plugins?.getPlugin?.('aider') as
+    | SmartComposerPlugin
+    | undefined
+
+  if (plugin) {
+    return (
+      <AppProvider app={app}>
+        <SettingsProvider
+          settings={plugin.settings}
+          setSettings={(newSettings) => plugin.setSettings(newSettings)}
+          addSettingsChangeListener={(listener) =>
+            plugin.addSettingsChangeListener(listener)
+          }
+        >
+          <TemplateSection app={app} onSelectTemplate={onSelectTemplate} />
+        </SettingsProvider>
+      </AppProvider>
+    )
+  }
+
+  const defaultSettings = smartComposerSettingsSchema.parse({})
+  return (
+    <AppProvider app={app}>
+      <SettingsProvider
+        settings={defaultSettings}
+        setSettings={() => {}}
+        addSettingsChangeListener={() => () => {}}
+      >
+        <TemplateSection app={app} onSelectTemplate={onSelectTemplate} />
+      </SettingsProvider>
+    </AppProvider>
+  )
+}
+
+export class TemplateSectionModal extends ReactModal<TemplateSectionModalProps> {
+  constructor(app: App, onSelectTemplate?: (template: Template) => void) {
     super({
       app: app,
-      Component: TemplateSection,
+      Component: TemplateSectionModalWrapper,
       props: {
         app,
+        onSelectTemplate: onSelectTemplate
+          ? (template) => {
+              onSelectTemplate(template)
+            }
+          : undefined,
       },
     })
-    this.modalEl.style.width = '720px'
+    this.modalEl.addClass('aide-modal-wide')
   }
 }

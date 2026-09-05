@@ -10,7 +10,7 @@ import {
 } from '../../constants'
 import { chatModelSchema } from '../../types/chat-model.types'
 import { embeddingModelSchema } from '../../types/embedding-model.types'
-import { McpServerConfig, mcpServerConfigSchema } from '../../types/mcp.types'
+import { mcpServerConfigSchema } from '../../types/mcp.types'
 import { llmProviderSchema } from '../../types/provider.types'
 
 import { SETTINGS_SCHEMA_VERSION } from './migrations'
@@ -54,7 +54,7 @@ const ragOptionsSchema = z.object({
   minSimilarity: z.number().catch(0.0),
   limit: z.number().catch(10),
   filterMode: z.enum(['blacklist', 'whitelist']).catch('blacklist'),
-  excludePatterns: z.array(z.string()).catch(['.obsidian', '.aider', '.aide', '.trash', '.git']),
+  excludePatterns: z.array(z.string()).catch(['.aider', '.aide', '.trash', '.git']),
   includePatterns: z.array(z.string()).catch([]),
   backgroundIndexing: z.boolean().catch(false),
   rerank: rerankOptionsSchema.catch({
@@ -100,7 +100,7 @@ export const smartComposerSettingsSchema = z.object({
     minSimilarity: 0.0,
     limit: 10,
     filterMode: 'blacklist',
-    excludePatterns: ['.obsidian', '.aider', '.aide', '.trash', '.git'],
+    excludePatterns: ['.aider', '.aide', '.trash', '.git'],
     includePatterns: [],
     backgroundIndexing: false,
     rerank: {

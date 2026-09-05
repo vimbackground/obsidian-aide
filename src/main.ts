@@ -2,7 +2,6 @@ import { Editor, MarkdownView, Notice, Plugin } from 'obsidian'
 
 import { ChatView } from './ChatView'
 import { ChatProps } from './components/chat-view/Chat'
-import { InstallerUpdateRequiredModal } from './components/modals/InstallerUpdateRequiredModal'
 import {
   CHAT_VIEW_TYPE,
   DEFAULT_CHAT_MODELS,
@@ -22,14 +21,14 @@ import { getMentionableBlockData } from './utils/obsidian'
 
 export default class SmartComposerPlugin extends Plugin {
   settings: SmartComposerSettings
-  initialChatProps?: ChatProps // TODO: change this to use view state like ApplyView
+  initialChatProps?: ChatProps
   settingsChangeListeners: ((newSettings: SmartComposerSettings) => void)[] = []
   mcpManager: McpManager | null = null
   dbManager: DatabaseManager | null = null
   ragEngine: RAGEngine | null = null
   private dbManagerInitPromise: Promise<DatabaseManager> | null = null
   private ragEngineInitPromise: Promise<RAGEngine> | null = null
-  private timeoutIds: ReturnType<typeof setTimeout>[] = [] // Use ReturnType instead of number
+  private timeoutIds: number[] = []
 
   async onload() {
     await this.loadSettings()
@@ -139,15 +138,15 @@ export default class SmartComposerPlugin extends Plugin {
     })
   }
 
-  private indexTimeout: ReturnType<typeof setTimeout> | null = null
+  private indexTimeout: number | null = null
 
   private triggerBackgroundIndex() {
     if (!this.settings.ragOptions.backgroundIndexing) return
     
     if (this.indexTimeout) {
-      clearTimeout(this.indexTimeout)
+      window.clearTimeout(this.indexTimeout)
     }
-    this.indexTimeout = setTimeout(async () => {
+    this.indexTimeout = window.setTimeout(async () => {
       try {
         const ragEngine = await this.getRAGEngine()
         await ragEngine.updateVaultIndex({ reindexAll: false })
@@ -159,7 +158,7 @@ export default class SmartComposerPlugin extends Plugin {
 
   onunload() {
     // clear all timers
-    this.timeoutIds.forEach((id) => clearTimeout(id))
+    this.timeoutIds.forEach((id) => window.clearTimeout(id))
     this.timeoutIds = []
 
     // RagEngine cleanup
@@ -228,9 +227,10 @@ export default class SmartComposerPlugin extends Plugin {
     }
     this.settings.providers = filteredProviders
 
-    // 2. 默认启用的对话模型仅保留并确保包含：deepseek-ai/DeepSeek-V4-Flash
-    const currentChatModels = (this.settings.chatModels || []).filter((m) => {
+    // 2. 默认启用的对话模型仅保留并确保包含：Qwen/Qwen3.5-4B，清理废弃的 DeepSeek-V4-Flash
+    let currentChatModels = (this.settings.chatModels || []).filter((m) => {
       if (m.providerType === 'groq' && m.id === 'qwen/qwen3.8-27b') return false
+      if (m.id === 'deepseek-ai/DeepSeek-V4-Flash') return false
       return true
     })
     for (const defaultModel of DEFAULT_CHAT_MODELS) {
@@ -246,7 +246,7 @@ export default class SmartComposerPlugin extends Plugin {
     this.settings.chatModels = currentChatModels
 
     // 确保默认对话模型设置
-    if (!this.settings.chatModelId) {
+    if (!this.settings.chatModelId || this.settings.chatModelId === 'deepseek-ai/DeepSeek-V4-Flash') {
       this.settings.chatModelId = DEFAULT_CHAT_MODEL_ID
     }
 
@@ -262,6 +262,17 @@ export default class SmartComposerPlugin extends Plugin {
     }
 
     await this.saveData(this.settings) // Save updated settings
+
+    // 4. 自动初始化 Obsidian 场景专属预设提示词模板（统一中英双语格式）
+    try {
+      const { TemplateManager } = await import(
+        './database/json/template/TemplateManager'
+      )
+      const templateManager = new TemplateManager(this.app)
+      await templateManager.ensurePresetTemplates()
+    } catch (err) {
+      console.warn('[Aider] Preset templates initialization error:', err)
+    }
   }
 
   async setSettings(newSettings: SmartComposerSettings) {
@@ -411,7 +422,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
     }
   }
   private registerTimeout(callback: () => void, timeout: number): void {
-    const timeoutId = setTimeout(callback, timeout)
+    const timeoutId = window.setTimeout(callback, timeout)
     this.timeoutIds.push(timeoutId)
   }
 
@@ -422,19 +433,24 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
       const aideDir = '.aide'
       const newDir = '.aider'
 
+      const renameSafe = async (fromPath: string, toPath: string) => {
+        const adapterWithRename = adapter as unknown as {
+          rename: (from: string, to: string) => Promise<void>
+        }
+        await adapterWithRename.rename(fromPath, toPath)
+      }
+
       // 1. Migrate old .smtcmp_json_db
       if (await adapter.exists(legacyDir)) {
         if (!(await adapter.exists(newDir)) && !(await adapter.exists(aideDir))) {
-          await (adapter as any).rename(legacyDir, newDir)
-          console.log(`[Aider] Migrated legacy database directory "${legacyDir}" to "${newDir}"`)
+          await renameSafe(legacyDir, newDir)
         }
       }
 
       // 2. Migrate .aide -> .aider
       if (await adapter.exists(aideDir)) {
         if (!(await adapter.exists(newDir))) {
-          await (adapter as any).rename(aideDir, newDir)
-          console.log(`[Aider] Migrated database directory "${aideDir}" to "${newDir}"`)
+          await renameSafe(aideDir, newDir)
         }
       }
 
@@ -459,8 +475,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
       for (const oldTar of legacyTars) {
         if (await adapter.exists(oldTar)) {
           if (!(await adapter.exists(newTar))) {
-            await (adapter as any).rename(oldTar, newTar)
-            console.log(`[Aider] Migrated legacy tar "${oldTar}" to "${newTar}"`)
+            await renameSafe(oldTar, newTar)
           } else {
             await adapter.remove(oldTar)
           }
@@ -472,15 +487,14 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
       for (const oldJson of legacyJsons) {
         if (await adapter.exists(oldJson)) {
           if (!(await adapter.exists(newJson))) {
-            await (adapter as any).rename(oldJson, newJson)
-            console.log(`[Aider] Migrated legacy vectors file "${oldJson}" to "${newJson}"`)
+            await renameSafe(oldJson, newJson)
           } else {
             await adapter.remove(oldJson)
           }
         }
       }
-    } catch (e) {
-      console.warn('[Aider] Failed to migrate legacy files to .aider:', e)
+    } catch (_e) {
+      // Ignored non-critical directory migration errors
     }
   }
 }

@@ -1,22 +1,16 @@
 import { backOff } from 'exponential-backoff'
 import { minimatch } from 'minimatch'
 import { App, TFile, normalizePath } from 'obsidian'
-import { splitMarkdown } from '../../../utils/common/markdown-splitter'
+
 
 import { IndexProgress } from '../../../components/chat-view/QueryProgress'
-import { ErrorModal } from '../../../components/modals/ErrorModal'
-import {
-  LLMAPIKeyInvalidException,
-  LLMAPIKeyNotSetException,
-  LLMBaseUrlNotSetException,
-  LLMRateLimitExceededException,
-} from '../../../core/llm/exception'
 import {
   EmbeddingDbStats,
   EmbeddingModelClient,
 } from '../../../types/embedding'
-import { InsertEmbedding, SelectEmbedding, VectorMetaData } from '../../../types/vector.types'
+import { InsertEmbedding, SelectEmbedding } from '../../../types/vector.types'
 import { chunkArray } from '../../../utils/common/chunk-array'
+import { splitMarkdown } from '../../../utils/common/markdown-splitter'
 
 const VECTOR_STORE_PATH = '.aider/vectors.json'
 
@@ -37,7 +31,7 @@ export class VectorManager {
   private app: App
   private vectors: SelectEmbedding[] = []
   private loaded = false
-  private saveTimeout: ReturnType<typeof setTimeout> | null = null
+  private saveTimeout: number | null = null
 
   constructor(app: App) {
     this.app = app
@@ -62,9 +56,9 @@ export class VectorManager {
 
   private async requestSave() {
     if (this.saveTimeout) {
-      clearTimeout(this.saveTimeout)
+      window.clearTimeout(this.saveTimeout)
     }
-    this.saveTimeout = setTimeout(async () => {
+    this.saveTimeout = window.setTimeout(async () => {
       try {
         const path = normalizePath(VECTOR_STORE_PATH)
         await this.app.vault.adapter.write(path, JSON.stringify(this.vectors))
@@ -168,7 +162,7 @@ export class VectorManager {
         filesToIndex.map(async (file) => {
           try {
             const fileContent = await this.app.vault.cachedRead(file)
-            const sanitizedContent = fileContent.replace(/\x00/g, '')
+            const sanitizedContent = fileContent.split('\0').join('')
 
             const fileDocuments = splitMarkdown(sanitizedContent, options.chunkSize)
             return fileDocuments.map((chunk): Omit<InsertEmbedding, 'model' | 'dimension' | 'embedding'> => ({
@@ -207,7 +201,7 @@ export class VectorManager {
 
     let completedChunks = 0
     const batchChunks = chunkArray(contentChunks, 10) // smaller batches for API calls
-    const failedChunks: any[] = []
+    const failedChunks: unknown[] = []
 
     try {
       let nextId = this.vectors.length > 0 ? Math.max(...this.vectors.map(v => v.id)) + 1 : 1
@@ -287,7 +281,7 @@ export class VectorManager {
     let filesToIndex = this.app.vault.getMarkdownFiles()
 
     // 1. 系统核心及非内容目录强制兜底排除
-    const SYSTEM_EXCLUDE_PATHS = ['.obsidian', '.aider', '.aide', '.trash', '.git', '.smart-env']
+    const SYSTEM_EXCLUDE_PATHS = [this.app.vault.configDir, '.aider', '.aide', '.trash', '.git', '.smart-env']
     filesToIndex = filesToIndex.filter((file) => {
       const p = file.path
       return !SYSTEM_EXCLUDE_PATHS.some(

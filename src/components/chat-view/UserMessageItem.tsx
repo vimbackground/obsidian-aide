@@ -1,3 +1,4 @@
+import { SerializedEditorState } from 'lexical'
 import { Edit2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
@@ -9,15 +10,16 @@ import {
   serializeMentionable,
 } from '../../utils/chat/mentionable'
 
-import { editorStateToPlainText } from './chat-input/utils/editor-state-to-plain-text'
+import { ChatUserInputRef } from './chat-input/ChatUserInput'
 import MentionableBadge from './chat-input/MentionableBadge'
+import { editorStateToPlainText } from './chat-input/utils/editor-state-to-plain-text'
 import SimilaritySearchResults from './SimilaritySearchResults'
 
 export type UserMessageItemProps = {
   message: ChatUserMessage
-  chatUserInputRef?: (ref: any) => void
-  onInputChange?: (content: any) => void
-  onSubmit?: (content: any, useVaultSearch: boolean) => void
+  chatUserInputRef?: (ref: ChatUserInputRef | null) => void
+  onInputChange?: (content: SerializedEditorState) => void
+  onSubmit?: (content: SerializedEditorState, useVaultSearch?: boolean) => void
   onFocus?: () => void
   onMentionablesChange?: (mentionables: Mentionable[]) => void
   onEditAndResubmit?: (messageId: string, newText: string) => void

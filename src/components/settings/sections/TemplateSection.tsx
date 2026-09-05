@@ -1,9 +1,10 @@
-import { Edit, Trash2 } from 'lucide-react'
+import { Check, Edit, PlusCircle, Trash2 } from 'lucide-react'
 import { App, Notice } from 'obsidian'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { TemplateManager } from '../../../database/json/template/TemplateManager'
-import { TemplateMetadata } from '../../../database/json/template/types'
+import { Template, TemplateMetadata } from '../../../database/json/template/types'
+import { useI18n } from '../../../utils/i18n'
 import { ObsidianButton } from '../../common/ObsidianButton'
 import { ConfirmModal } from '../../modals/ConfirmModal'
 import {
@@ -13,10 +14,13 @@ import {
 
 type TemplateSectionProps = {
   app: App
+  onSelectTemplate?: (template: Template) => void
 }
 
-export function TemplateSection({ app }: TemplateSectionProps) {
+export function TemplateSection({ app, onSelectTemplate }: TemplateSectionProps) {
   const templateManager = useMemo(() => new TemplateManager(app), [app])
+  const { t, language } = useI18n()
+  const isZh = language === 'zh'
 
   const [templateList, setTemplateList] = useState<TemplateMetadata[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -28,13 +32,15 @@ export function TemplateSection({ app }: TemplateSectionProps) {
     } catch (error) {
       console.error('Failed to fetch template list:', error)
       new Notice(
-        'Failed to load templates. Please try refreshing the settings.',
+        isZh
+          ? '加载提示词模板失败，请尝试刷新设置。'
+          : 'Failed to load templates. Please try refreshing the settings.',
       )
       setTemplateList([])
     } finally {
       setIsLoading(false)
     }
-  }, [templateManager])
+  }, [templateManager, isZh])
 
   const handleCreate = useCallback(() => {
     new CreateTemplateModal({
@@ -55,25 +61,47 @@ export function TemplateSection({ app }: TemplateSectionProps) {
     [fetchTemplateList, app],
   )
 
+  const handleSelect = useCallback(
+    async (templateMeta: TemplateMetadata) => {
+      if (!onSelectTemplate) return
+      try {
+        const fullTemplate = await templateManager.findById(templateMeta.id)
+        if (fullTemplate) {
+          onSelectTemplate(fullTemplate)
+        }
+      } catch (err) {
+        console.error('Failed to load full template:', err)
+      }
+    },
+    [templateManager, onSelectTemplate],
+  )
+
   const handleDelete = useCallback(
     (template: TemplateMetadata) => {
-      const message = `确定要删除模板 "${template.name}" 吗？`
+      const message = t('settings.deleteTemplateConfirm').replace(
+        '{name}',
+        template.name,
+      )
       new ConfirmModal(app, {
-        title: '删除模板',
+        title: isZh ? '删除模板' : 'Delete Template',
         message: message,
-        ctaText: '确认删除',
+        ctaText: t('common.delete'),
         onConfirm: async () => {
           try {
             await templateManager.deleteTemplate(template.id)
             fetchTemplateList()
           } catch (error) {
             console.error('Failed to delete template:', error)
-            new Notice('删除模板失败，请重试')
+            new Notice(
+              isZh
+                ? '删除模板失败，请重试'
+                : 'Failed to delete template, please try again',
+            )
           }
         },
       }).open()
     },
-    [templateManager, fetchTemplateList, app],
+    [templateManager, fetchTemplateList, app, t, isZh],
   )
 
   useEffect(() => {
@@ -82,25 +110,29 @@ export function TemplateSection({ app }: TemplateSectionProps) {
 
   return (
     <div className="aide-settings-section">
-      <div className="aide-settings-header">提示词模板 (Prompt Templates)</div>
+      <div className="aide-settings-header">{t('settings.templates')}</div>
 
       <div className="aide-settings-sub-header-container">
-        <div className="aide-settings-sub-header">已保存的模板</div>
-        <ObsidianButton text="添加提示词模板" onClick={handleCreate} />
+        <div className="aide-settings-sub-header">
+          {t('settings.savedTemplates')}
+        </div>
+        <ObsidianButton text={t('settings.addTemplate')} onClick={handleCreate} />
       </div>
 
       <div className="aide-templates-container">
         <div className="aide-templates-header">
-          <div>模板名称</div>
-          <div>操作</div>
+          <div>{t('settings.templateName')}</div>
+          <div>{t('common.actions')}</div>
         </div>
         {isLoading ? (
-          <div className="aide-templates-empty">正在加载模板...</div>
+          <div className="aide-templates-empty">{t('settings.loadingTemplates')}</div>
         ) : templateList.length > 0 ? (
           templateList.map((template) => (
             <TemplateItem
               key={template.id}
               template={template}
+              isSelectMode={Boolean(onSelectTemplate)}
+              onSelect={() => handleSelect(template)}
               onDelete={() => {
                 handleDelete(template)
               }}
@@ -110,7 +142,7 @@ export function TemplateSection({ app }: TemplateSectionProps) {
             />
           ))
         ) : (
-          <div className="aide-templates-empty">暂无保存的提示词模板</div>
+          <div className="aide-templates-empty">{t('settings.noTemplates')}</div>
         )}
       </div>
     </div>
@@ -119,18 +151,44 @@ export function TemplateSection({ app }: TemplateSectionProps) {
 
 function TemplateItem({
   template,
+  isSelectMode,
+  onSelect,
   onEdit,
   onDelete,
 }: {
   template: TemplateMetadata
+  isSelectMode?: boolean
+  onSelect?: () => void
   onEdit: () => void
   onDelete: () => void
 }) {
   return (
-    <div className="aide-template">
+    <div
+      className="aide-template"
+      style={{ cursor: isSelectMode ? 'pointer' : undefined }}
+      onClick={() => {
+        if (isSelectMode) onSelect?.()
+      }}
+    >
       <div className="aide-template-row">
-        <div className="aide-template-name">{template.name}</div>
-        <div className="aide-template-actions">
+        <div className="aide-template-name" style={{ flex: 1, marginRight: 8 }}>
+          {template.name}
+        </div>
+        <div
+          className="aide-template-actions"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {isSelectMode && (
+            <button
+              className="clickable-icon"
+              aria-label="Insert template"
+              title="插入模板 / Apply template"
+              onClick={onSelect}
+              style={{ color: 'var(--interactive-accent)', marginRight: 4 }}
+            >
+              <PlusCircle size={16} />
+            </button>
+          )}
           <button
             className="clickable-icon"
             aria-label="Edit Template"

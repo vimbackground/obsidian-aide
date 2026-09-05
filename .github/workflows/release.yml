@@ -11,6 +11,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   check-and-release:
@@ -78,6 +80,14 @@ jobs:
         if: env.SHOULD_RELEASE == 'true'
         run: node scripts/extract-release-notes.js "${{ env.TAG }}" release_notes.md
 
+      - name: Generate artifact attestation
+        if: env.SHOULD_RELEASE == 'true'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            main.js
+            styles.css
+
       - name: Create GitHub Release
         if: env.SHOULD_RELEASE == 'true'
         uses: softprops/action-gh-release@v2
@@ -88,9 +98,8 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            output/aider.zip
-            output/obsidian-aider/main.js
-            output/obsidian-aider/manifest.json
-            output/obsidian-aider/styles.css
+            main.js
+            manifest.json
+            styles.css
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

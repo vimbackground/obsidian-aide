@@ -1,4 +1,4 @@
-import { useSettings } from '../contexts/settings-context'
+import { useSettingsSafe } from '../contexts/settings-context'
 
 export const translations: Record<'en' | 'zh', Record<string, string>> = {
   en: {
@@ -62,6 +62,17 @@ export const translations: Record<'en' | 'zh', Record<string, string>> = {
     // MCP
     'settings.mcp': 'Tool Extensions Ecosystem',
     'settings.mcpDesc': 'Extend AI capabilities with built-in native tools and external MCP servers.',
+
+    // Templates
+    'settings.templates': 'Prompt Templates',
+    'settings.templatesDesc': 'Manage reusable prompt templates for quick query insertion.',
+    'settings.savedTemplates': 'Saved Templates',
+    'settings.addTemplate': 'Add Template',
+    'settings.templateName': 'Template Name',
+    'settings.templateContent': 'Template Content',
+    'settings.noTemplates': 'No saved prompt templates',
+    'settings.loadingTemplates': 'Loading templates...',
+    'settings.deleteTemplateConfirm': 'Are you sure you want to delete template "{name}"?',
 
     // Etc
     'settings.etc': 'Other Settings',
@@ -132,6 +143,17 @@ export const translations: Record<'en' | 'zh', Record<string, string>> = {
     'settings.mcp': '工具扩展生态',
     'settings.mcpDesc': '通过内置原生工具和标准协议接入联网搜索、天气、抓取等实用能力。',
 
+    // 模板
+    'settings.templates': '提示词模板',
+    'settings.templatesDesc': '管理常用提示词模板，可在对话中一键调用或通过 / 触发。',
+    'settings.savedTemplates': '已保存的模板',
+    'settings.addTemplate': '添加提示词模板',
+    'settings.templateName': '模板名称',
+    'settings.templateContent': '模板内容',
+    'settings.noTemplates': '暂无保存的提示词模板',
+    'settings.loadingTemplates': '正在加载模板...',
+    'settings.deleteTemplateConfirm': '确定要删除模板 "{name}" 吗？',
+
     // 其他
     'settings.etc': '其他设置',
     'settings.language': '界面语言',
@@ -143,7 +165,7 @@ export const translations: Record<'en' | 'zh', Record<string, string>> = {
 
 export type Language = 'en' | 'zh' | 'zh-CN' | 'auto'
 
-export function getLanguage(settingsLanguage: string = 'en'): 'en' | 'zh' {
+export function getLanguage(settingsLanguage = 'en'): 'en' | 'zh' {
   if (settingsLanguage === 'auto') {
     const navLang = typeof navigator !== 'undefined' ? navigator.language.toLowerCase() : 'en'
     if (navLang.startsWith('zh')) return 'zh'
@@ -155,17 +177,17 @@ export function getLanguage(settingsLanguage: string = 'en'): 'en' | 'zh' {
   return 'en'
 }
 
-export function translate(key: string, language: string = 'en', defaultText?: string): string {
+export function translate(key: string, language = 'en', defaultText?: string): string {
   const lang = getLanguage(language)
-  return translations[lang]?.[key] ?? translations['en']?.[key] ?? defaultText ?? key
+  return translations[lang]?.[key] ?? translations.en?.[key] ?? defaultText ?? key
 }
 
 export function useI18n() {
-  const { settings } = useSettings()
-  const lang = getLanguage(settings?.language ?? 'en')
+  const settingsContext = useSettingsSafe()
+  const lang = getLanguage(settingsContext?.settings?.language ?? 'en')
 
   const t = (key: string, defaultText?: string): string => {
-    return translations[lang]?.[key] ?? translations['en']?.[key] ?? defaultText ?? key
+    return translations[lang]?.[key] ?? translations.en?.[key] ?? defaultText ?? key
   }
 
   return { t, language: lang }

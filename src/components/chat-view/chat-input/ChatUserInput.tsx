@@ -1,5 +1,13 @@
+import { $generateNodesFromSerializedNodes } from '@lexical/clipboard'
 import { useQuery } from '@tanstack/react-query'
-import { $nodesOfType, LexicalEditor, SerializedEditorState } from 'lexical'
+import {
+  $getRoot,
+  $insertNodes,
+  $nodesOfType,
+  LexicalEditor,
+  SerializedEditorState,
+} from 'lexical'
+import { Book, Plus } from 'lucide-react'
 import {
   forwardRef,
   useCallback,
@@ -9,6 +17,8 @@ import {
   useRef,
   useState,
 } from 'react'
+
+import { TemplateSectionModal } from '../../modals/TemplateSectionModal'
 
 import { useApp } from '../../../contexts/app-context'
 import {
@@ -21,13 +31,12 @@ import {
   getMentionableKey,
   serializeMentionable,
 } from '../../../utils/chat/mentionable'
-import { fileToMentionableImage } from '../../../utils/llm/image'
 import { openMarkdownFile, readTFileContent } from '../../../utils/obsidian'
 import { ObsidianMarkdown } from '../ObsidianMarkdown'
+
 import LexicalContentEditable from './LexicalContentEditable'
 import MentionableBadge from './MentionableBadge'
 import { ModelSelect } from './ModelSelect'
-import { Plus } from 'lucide-react'
 import { MentionNode } from './plugins/mention/MentionNode'
 import { NodeMutations } from './plugins/on-mutation/OnMutationPlugin'
 import { SubmitButton } from './SubmitButton'
@@ -189,13 +198,6 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
       })
     }
 
-    const handleUploadImages = async (images: File[]) => {
-      const mentionableImages = await Promise.all(
-        images.map((image) => fileToMentionableImage(image)),
-      )
-      handleCreateImageMentionables(mentionableImages)
-    }
-
     const handleSubmit = (options: { useVaultSearch?: boolean } = {}) => {
       const content = editorRef.current?.getEditorState()?.toJSON()
       content && onSubmit(content, options.useVaultSearch)
@@ -290,7 +292,7 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
                   padding: '4px',
                   borderRadius: 'var(--radius-s)',
                   cursor: 'pointer',
-                  marginRight: '6px',
+                  marginRight: '4px',
                   flexShrink: 0,
                   color: 'var(--text-muted)',
                 }}
@@ -298,6 +300,39 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
                 <Plus size={16} />
               </button>
             )}
+            <button
+              type="button"
+              className="clickable-icon"
+              onClick={() => {
+                const modal = new TemplateSectionModal(app, (template) => {
+                  if (editorRef.current && template.content?.nodes) {
+                    editorRef.current.update(() => {
+                      const parsedNodes = $generateNodesFromSerializedNodes(
+                        template.content.nodes,
+                      )
+                      $insertNodes(parsedNodes)
+                    })
+                    contentEditableRef.current?.focus()
+                  }
+                  modal.close()
+                })
+                modal.open()
+              }}
+              title="提示词模板 (Prompt templates)"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px',
+                borderRadius: 'var(--radius-s)',
+                cursor: 'pointer',
+                marginRight: '6px',
+                flexShrink: 0,
+                color: 'var(--text-muted)',
+              }}
+            >
+              <Book size={16} />
+            </button>
             <ModelSelect />
           </div>
           <div className="aide-chat-user-input-controls__buttons">

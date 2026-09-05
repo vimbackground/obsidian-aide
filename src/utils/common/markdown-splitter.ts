@@ -40,7 +40,7 @@ export function stripFrontmatterPreserveLines(text: string): string {
  */
 export function splitMarkdown(
   text: string,
-  chunkSize: number = 1000,
+  chunkSize = 1000,
 ): MarkdownChunk[] {
   if (!text || text.trim().length === 0) return []
 
@@ -159,7 +159,7 @@ function splitLargeParagraph(para: Paragraph, chunkSize: number): MarkdownChunk[
   const sentences = fullText.match(sentenceRegex) || [fullText]
 
   let currentText = ''
-  let startLine = para.startLine
+  const startLine = para.startLine
 
   for (const sentence of sentences) {
     if (currentText.length + sentence.length > chunkSize && currentText.length > 0) {

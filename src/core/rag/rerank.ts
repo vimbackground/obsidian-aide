@@ -69,9 +69,15 @@ export async function rerankDocuments({
       }),
     })
 
-    const data = response.json
+    const data = response.json as { results?: unknown[] } | undefined
     if (data && Array.isArray(data.results)) {
-      return data.results.map((item: any) => ({
+      return (
+        data.results as Array<{
+          index: number
+          relevance_score?: number
+          relevanceScore?: number
+        }>
+      ).map((item) => ({
         index: item.index,
         relevanceScore: item.relevance_score ?? item.relevanceScore ?? 0,
       }))

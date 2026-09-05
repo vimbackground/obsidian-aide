@@ -39,7 +39,7 @@ export class EmbeddingDbManageModal extends ReactModal<EmbeddingDbManagerModalCo
         title: '管理向量数据库',
       },
     })
-    this.modalEl.style.width = '720px'
+    this.modalEl.addClass('aide-modal-wide')
   }
 }
 

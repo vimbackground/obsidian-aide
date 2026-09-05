@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
+
 import { ToolCallRequest } from '../../types/tool-call.types'
 
 /**
@@ -39,7 +40,7 @@ export function sanitizeAssistantContent(text: string): string {
   sanitized = sanitized.replace(/<function=[^>]*>[\s\S]*?(?:<\/function>|$)/gi, '')
   sanitized = sanitized.replace(/<parameter=[^>]*>[\s\S]*?(?:<\/parameter>|$)/gi, '')
 
-  return sanitized.trim()
+  return sanitized
 }
 
 /**
@@ -75,7 +76,7 @@ export function extractTextToolCalls(content: string): {
       } else {
         const genericParam =
           /<[\s]*\|[\s]*DSML[\s]*\|[\s]*parameter\s+name=["']([^"']+)["'][^>]*>([\s\S]*?)<\/[\s]*\|[\s]*DSML[\s]*\|[\s]*parameter>/gi
-        const paramsObj: Record<string, any> = {}
+        const paramsObj: Record<string, string> = {}
         let gp: RegExpExecArray | null
         while ((gp = genericParam.exec(invokeBody)) !== null) {
           paramsObj[gp[1].trim()] = gp[2].trim()
@@ -85,13 +86,11 @@ export function extractTextToolCalls(content: string): {
         }
       }
 
-      if (rawToolName) {
-        toolCalls.push({
-          id: uuidv4(),
-          name: normalizeToolName(rawToolName),
-          arguments: args,
-        })
-      }
+      toolCalls.push({
+        id: uuidv4(),
+        name: normalizeToolName(rawToolName),
+        arguments: args,
+      })
     }
   }
 
@@ -104,8 +103,8 @@ export function extractTextToolCalls(content: string): {
 
     if (inner.startsWith('{') && inner.endsWith('}')) {
       try {
-        const parsed = JSON.parse(inner)
-        if (parsed.name) {
+        const parsed = JSON.parse(inner) as Record<string, unknown>
+        if (typeof parsed.name === 'string') {
           toolCalls.push({
             id: uuidv4(),
             name: normalizeToolName(parsed.name),
@@ -115,7 +114,9 @@ export function extractTextToolCalls(content: string): {
                 : JSON.stringify(parsed.arguments ?? {}),
           })
         }
-      } catch {}
+      } catch (_e) {
+        // Ignore malformed tool JSON
+      }
     } else {
       const funcMatch =
         /<function=([^>]+)>([\s\S]*?)(?:<\/function>|$)/i.exec(inner)

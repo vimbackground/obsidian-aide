@@ -115,48 +115,51 @@ export class YoutubeTranscript {
       throw new YoutubeTranscriptDisabledError(videoId)
     }
 
+    type CaptionTrack = {
+      languageCode: string
+      baseUrl: string
+    }
+
     const captions = (() => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- Parse untyped player captions object from YouTube HTML
         return JSON.parse(
           splittedHTML[1].split(',"videoDetails')[0].replace('\n', ''),
         )
-      } catch (e) {
+      } catch (_e) {
         return undefined
       }
-    })()?.playerCaptionsTracklistRenderer
+    })()?.playerCaptionsTracklistRenderer as { captionTracks?: CaptionTrack[] } | undefined
 
     if (!captions) {
       throw new YoutubeTranscriptDisabledError(videoId)
     }
 
-    if (!('captionTracks' in captions)) {
+    const captionTracks = captions.captionTracks
+    if (!captionTracks || !Array.isArray(captionTracks) || captionTracks.length === 0) {
       throw new YoutubeTranscriptNotAvailableError(videoId)
     }
 
     if (
       config?.lang &&
-      !captions.captionTracks.some(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (track: any) => track.languageCode === config?.lang,
+      !captionTracks.some(
+        (track: CaptionTrack) => track.languageCode === config?.lang,
       )
     ) {
       throw new YoutubeTranscriptNotAvailableLanguageError(
         config?.lang,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
-        captions.captionTracks.map((track: any) => track.languageCode),
+        captionTracks.map((track: CaptionTrack) => track.languageCode),
         videoId,
       )
     }
 
-    const transcriptURL: string = (
-      config?.lang
-        ? captions.captionTracks.find(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (track: any) => track.languageCode === config?.lang,
-          )
-        : captions.captionTracks[0]
-    ).baseUrl
+    const matchedTrack = config?.lang
+      ? captionTracks.find(
+          (track: CaptionTrack) => track.languageCode === config?.lang,
+        )
+      : captionTracks[0]
+
+    const transcriptURL: string = (matchedTrack ?? captionTracks[0]).baseUrl
 
     const transcriptResponse = await requestUrl({
       url: transcriptURL,
@@ -176,7 +179,7 @@ export class YoutubeTranscript {
         text: result[3],
         duration: parseFloat(result[2]),
         offset: parseFloat(result[1]),
-        lang: config?.lang ?? captions.captionTracks[0].languageCode,
+        lang: config?.lang ?? captionTracks[0].languageCode,
       })),
     }
   }

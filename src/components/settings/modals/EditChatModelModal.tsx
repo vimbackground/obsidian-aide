@@ -153,16 +153,21 @@ function EditChatModelComponent({
                 method: 'GET',
                 headers: { Authorization: `Bearer ${provider.apiKey}` },
               })
-              const data = res.json
-              if (data && data.data && Array.isArray(data.data)) {
-                const models = data.data.map((m: any) => m.id).filter(Boolean)
+              const data = res.json as { data?: Array<{ id?: string }> } | undefined
+              if (data && Array.isArray(data.data)) {
+                const models = data.data
+                  .map((m) => m.id)
+                  .filter((id): id is string => Boolean(id))
                 setAvailableModels(models)
-                new Notice(`已成功获取到 ${models.length} 个模型，请在下方下拉菜单中选择`)
+                new Notice(
+                  `已成功获取到 ${String(models.length)} 个模型，请在下方下拉菜单中选择`,
+                )
               } else {
                 new Notice('未在返回数据中解析到可用模型列表')
               }
-            } catch (e: any) {
-              new Notice(`拉取模型失败：${e?.message || '网络请求错误'}`)
+            } catch (e: unknown) {
+              const errMsg = e instanceof Error ? e.message : '网络请求错误'
+              new Notice(`拉取模型失败：${errMsg}`)
               console.error(e)
             } finally {
               setIsFetching(false)

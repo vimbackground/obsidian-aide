@@ -2,9 +2,9 @@ import { App } from 'obsidian'
 
 import { QueryProgressState } from '../../components/chat-view/QueryProgress'
 import { VectorManager } from '../../database/modules/vector/VectorManager'
-import { SelectEmbedding } from '../../types/vector.types'
 import { SmartComposerSettings } from '../../settings/schema/setting.types'
 import { EmbeddingModelClient } from '../../types/embedding'
+import { SelectEmbedding } from '../../types/vector.types'
 
 import { getEmbeddingModelClient } from './embedding'
 import { rerankDocuments } from './rerank'

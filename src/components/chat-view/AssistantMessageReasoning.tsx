@@ -1,8 +1,8 @@
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { memo, useEffect, useRef, useState } from 'react'
 
-import DotLoader from '../common/DotLoader'
 import { useSettings } from '../../contexts/settings-context'
+import DotLoader from '../common/DotLoader'
 
 import { ObsidianMarkdown } from './ObsidianMarkdown'
 
@@ -28,10 +28,10 @@ const AssistantMessageReasoning = memo(function AssistantMessageReasoning({
       if (!hasUserInteracted.current) {
         setIsExpanded(true)
       }
-      const timer = setTimeout(() => {
+      const timer = window.setTimeout(() => {
         setShowLoader(false)
       }, 1000)
-      return () => clearTimeout(timer)
+      return () => window.clearTimeout(timer)
     }
     previousReasoning.current = reasoning
   }, [reasoning])
